@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { User, Trash2, Info, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -12,6 +13,8 @@ interface ProfileProps {
 }
 
 export function Profile({ userProfile }: ProfileProps) {
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const handleExportExcel = () => {
     const gradePoints: Record<string, number> = {
       'A+': 4.0, 'A': 4.0, 'A-': 3.7,
@@ -140,10 +143,8 @@ export function Profile({ userProfile }: ProfileProps) {
   };
 
   const handleClearData = () => {
-    if (confirm('Are you sure? This will delete all your data and cannot be undone.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+    localStorage.clear();
+    window.location.reload();
   };
 
   const getYearLabel = (year: string) => {
@@ -219,7 +220,7 @@ export function Profile({ userProfile }: ProfileProps) {
           </button>
 
           <button
-            onClick={handleClearData}
+            onClick={() => setShowClearConfirm(true)}
             className="w-full flex items-center justify-between p-4 bg-red-50 border-2 border-red-200 rounded-lg hover:bg-red-100 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -232,6 +233,31 @@ export function Profile({ userProfile }: ProfileProps) {
           </button>
         </div>
       </div>
+
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">Clear all data?</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This will permanently delete everything saved in this app on this device.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearData}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Clear all data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* About */}
       <div className="bg-white rounded-xl shadow-md p-5">
