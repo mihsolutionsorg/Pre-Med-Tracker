@@ -381,7 +381,12 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
       <div className="space-y-4">
         {Object.entries(categorizedPriorities).map(([category, categoryPriorities]) => (
           <div key={category} className="bg-white rounded-xl shadow-md p-5">
-            <h3 className="font-semibold text-gray-900 mb-4">{category}</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">{category}</h3>
+              <span className="text-sm text-gray-500">
+                {categoryPriorities.filter(priority => answers[priority.id] === true).length} / {categoryPriorities.length}
+              </span>
+            </div>
             <div className="space-y-3">
               {categoryPriorities.map((priority) => (
                 <div key={priority.id} className="border border-gray-200 rounded-lg p-4">
