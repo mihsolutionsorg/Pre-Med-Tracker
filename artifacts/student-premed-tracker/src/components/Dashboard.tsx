@@ -118,7 +118,7 @@ export function Dashboard({
 
   const currentGPA = calculateGPA(courses);
 
-  const getSemesterFocus = (yearKey: string, semesterKey: string) => {
+  const getSemesterReadiness = (yearKey: string, semesterKey: string) => {
     const priorities = semesterPriorities[yearKey]?.[semesterKey] || [];
     if (priorities.length === 0) return 0;
 
@@ -159,9 +159,9 @@ export function Dashboard({
     return totalPriorities > 0 ? Math.round((completedCount / totalPriorities) * 100) : 0;
   };
 
-  const overallReadiness = getSemesterFocus(year, semester);
+  const overallReadiness = getSemesterReadiness(year, semester);
   const applicationReadiness = calculateApplicationReadiness();
-  const semesterFocus = getSemesterFocus(year, semester);
+  const semesterFocus = getSemesterFocusList(year, semester);
 
   return (
     <div className="space-y-6">
@@ -297,7 +297,7 @@ export function Dashboard({
   );
 }
 
-function getSemesterFocus(year: string, semester: string): string[] {
+function getSemesterFocusList(year: string, semester: string): string[] {
   const focuses: Record<string, Record<string, string[]>> = {
     'undergrad-freshman': {
       fall: [
