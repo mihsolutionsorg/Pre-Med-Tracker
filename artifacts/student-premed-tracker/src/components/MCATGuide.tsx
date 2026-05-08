@@ -36,7 +36,7 @@ export function MCATGuide({
   const [draftExamPlan, setDraftExamPlan] = useState(examPlan);
   const [newTest, setNewTest] = useState({
     date: '',
-    score: 500,
+    score: '',
     source: 'AAMC',
   });
 
@@ -49,17 +49,18 @@ export function MCATGuide({
   };
 
   const handleSaveTest = () => {
-    if (!newTest.date || newTest.score < 472 || newTest.score > 528) return;
+    const score = Number(newTest.score);
+    if (!newTest.date || Number.isNaN(score) || score < 472 || score > 528) return;
 
     const test: PracticeTest = {
       id: Date.now().toString(),
       date: newTest.date,
-      score: newTest.score,
+      score,
       source: newTest.source,
     };
 
     onAddPracticeTest(test);
-    setNewTest({ date: '', score: 500, source: 'AAMC' });
+    setNewTest({ date: '', score: '', source: 'AAMC' });
     setShowLogTestModal(false);
   };
 
@@ -131,7 +132,7 @@ export function MCATGuide({
                 <input
                   type="number"
                   value={newTest.score}
-                  onChange={(e) => setNewTest({ ...newTest, score: parseInt(e.target.value) || 500 })}
+                  onChange={(e) => setNewTest({ ...newTest, score: e.target.value })}
                   min="472"
                   max="528"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
