@@ -257,69 +257,35 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2 border-gray-300">
-                <th className="text-left py-3 px-2 font-semibold text-gray-900">School Tier</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-900">Avg Cumulative</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-900">Avg Science</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-900">Your Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-2 font-medium text-gray-800">Top 20 MD</td>
-                <td className="py-3 px-2 text-gray-700">3.85-3.95</td>
-                <td className="py-3 px-2 text-gray-700">3.80-3.92</td>
-                <td className="py-3 px-2">
-                  <span className={`px-3 py-1 rounded font-medium ${getSchoolTierColor(3.85, 3.75)}`}>
-                    {getSchoolTierStatus(3.85, 3.75)}
-                  </span>
-                </td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-2 font-medium text-gray-800">Top 21-50 MD</td>
-                <td className="py-3 px-2 text-gray-700">3.75-3.85</td>
-                <td className="py-3 px-2 text-gray-700">3.70-3.82</td>
-                <td className="py-3 px-2">
-                  <span className={`px-3 py-1 rounded font-medium ${getSchoolTierColor(3.75, 3.65)}`}>
-                    {getSchoolTierStatus(3.75, 3.65)}
-                  </span>
-                </td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-2 font-medium text-gray-800">Mid-Tier MD</td>
-                <td className="py-3 px-2 text-gray-700">3.65-3.75</td>
-                <td className="py-3 px-2 text-gray-700">3.60-3.72</td>
-                <td className="py-3 px-2">
-                  <span className={`px-3 py-1 rounded font-medium ${getSchoolTierColor(3.65, 3.5)}`}>
-                    {getSchoolTierStatus(3.65, 3.5)}
-                  </span>
-                </td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-2 font-medium text-gray-800">Lower Tier MD</td>
-                <td className="py-3 px-2 text-gray-700">3.50-3.65</td>
-                <td className="py-3 px-2 text-gray-700">3.45-3.60</td>
-                <td className="py-3 px-2">
-                  <span className={`px-3 py-1 rounded font-medium ${getSchoolTierColor(3.50, 3.3)}`}>
-                    {getSchoolTierStatus(3.50, 3.3)}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="py-3 px-2 font-medium text-gray-800">DO Programs</td>
-                <td className="py-3 px-2 text-gray-700">3.54-3.65</td>
-                <td className="py-3 px-2 text-gray-700">3.48-3.58</td>
-                <td className="py-3 px-2">
-                  <span className={`px-3 py-1 rounded font-medium ${getSchoolTierColor(3.54, 3.2)}`}>
-                    {getSchoolTierStatus(3.54, 3.2)}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {[
+            { tier: 'Top 20 MD', cumulative: '3.85-3.95', science: '3.80-3.92' },
+            { tier: 'Top 21-50 MD', cumulative: '3.75-3.85', science: '3.70-3.82' },
+            { tier: 'Mid-Tier MD', cumulative: '3.65-3.75', science: '3.60-3.72' },
+            { tier: 'Lower Tier MD', cumulative: '3.50-3.65', science: '3.45-3.60' },
+            { tier: 'DO Programs', cumulative: '3.54-3.65', science: '3.48-3.58' },
+          ].map((item) => (
+            <div key={item.tier} className="border border-gray-200 rounded-lg p-4 bg-white">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-gray-900">{item.tier}</span>
+                <span className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm font-medium">Below target</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <div className="text-gray-500">Avg Cumulative</div>
+                  <div className="font-medium text-gray-900">{item.cumulative}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Avg Science</div>
+                  <div className="font-medium text-gray-900">{item.science}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500">Your Status</div>
+                  <div className="font-medium text-gray-900">Compare your GPA above</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
