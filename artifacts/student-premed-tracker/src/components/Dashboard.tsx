@@ -134,32 +134,27 @@ export function Dashboard({
     const currentYearIndex = yearOrder.indexOf(year);
     const currentSemesterIndex = semesterOrder.indexOf(semester);
 
-    let totalPriorities = 0;
-    let completedCount = 0;
+    const roadmapIds: string[] = [];
 
-    // Loop through all years up to and including current year
     for (let yearIdx = 0; yearIdx <= currentYearIndex; yearIdx++) {
       const yearKey = yearOrder[yearIdx];
       const yearData = semesterPriorities[yearKey];
 
       if (!yearData) continue;
 
-      // For current year, only count up to current semester
       const maxSemesterIdx = yearIdx === currentYearIndex ? currentSemesterIndex : semesterOrder.length - 1;
 
       for (let semIdx = 0; semIdx <= maxSemesterIdx; semIdx++) {
         const semesterKey = semesterOrder[semIdx];
         const priorities = yearData[semesterKey] || [];
-
-        totalPriorities += priorities.length;
-        completedCount += priorities.filter(p => completedPriorities.includes(p.id)).length;
+        roadmapIds.push(...priorities.map((priority) => priority.id));
       }
     }
 
-    const completedRoadmapItems = completedPriorities.length;
-    return totalPriorities > 0
-      ? Math.round((Math.min(completedRoadmapItems, totalPriorities) / totalPriorities) * 100)
-      : 0;
+    if (roadmapIds.length === 0) return 0;
+
+    const completedCount = roadmapIds.filter((id) => completedPriorities.includes(id)).length;
+    return Math.round((completedCount / roadmapIds.length) * 100);
   };
 
   const overallReadiness = getSemesterReadiness(year, semester);
