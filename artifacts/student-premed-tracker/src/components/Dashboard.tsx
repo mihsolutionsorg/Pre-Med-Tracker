@@ -131,21 +131,13 @@ export function Dashboard({
     const yearOrder = ['undergrad-freshman', 'undergrad-sophomore', 'undergrad-junior', 'undergrad-senior', 'gap-year'];
     const semesterOrder = ['fall', 'spring', 'summer'];
 
-    const currentYearIndex = yearOrder.indexOf(year);
-    const currentSemesterIndex = semesterOrder.indexOf(semester);
-
     const roadmapIds: string[] = [];
 
-    for (let yearIdx = 0; yearIdx <= currentYearIndex; yearIdx++) {
-      const yearKey = yearOrder[yearIdx];
+    for (const yearKey of yearOrder) {
       const yearData = semesterPriorities[yearKey];
-
       if (!yearData) continue;
 
-      const maxSemesterIdx = yearIdx === currentYearIndex ? currentSemesterIndex : semesterOrder.length - 1;
-
-      for (let semIdx = 0; semIdx <= maxSemesterIdx; semIdx++) {
-        const semesterKey = semesterOrder[semIdx];
+      for (const semesterKey of semesterOrder) {
         const priorities = yearData[semesterKey] || [];
         roadmapIds.push(...priorities.map((priority) => priority.id));
       }
