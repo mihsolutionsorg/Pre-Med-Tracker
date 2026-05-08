@@ -177,7 +177,7 @@ export function Dashboard({
           />
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          Current semester only
+          was the current semester
         </p>
       </div>
 
