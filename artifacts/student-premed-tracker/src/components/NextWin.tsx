@@ -53,6 +53,7 @@ export function NextWin({
   examPlan,
 }: NextWinProps) {
   const [showWatchItems, setShowWatchItems] = useState(false);
+  const [selectedQuickWin, setSelectedQuickWin] = useState<number | null>(null);
 
   // Calculate GPA
   const calculateGPA = (courseList: Course[]) => {
@@ -223,9 +224,15 @@ export function NextWin({
             {quickWins.slice(0, 3).map((win, idx) => (
               <button
                 key={idx}
+                type="button"
+                onClick={() => setSelectedQuickWin(selectedQuickWin === idx ? null : idx)}
                 className="w-full flex items-start gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all text-left"
               >
-                <div className="w-5 h-5 rounded border-2 border-blue-400 flex-shrink-0 mt-0.5" />
+                <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
+                  selectedQuickWin === idx ? 'bg-blue-500 border-blue-500' : 'border-blue-400'
+                }`}>
+                  {selectedQuickWin === idx && <CheckCircle size={12} className="text-white" />}
+                </div>
                 <span className="text-blue-900 font-medium">{win}</span>
               </button>
             ))}
