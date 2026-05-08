@@ -265,16 +265,17 @@ export function Profile({ userProfile }: ProfileProps) {
           <Info className="text-gray-600" size={24} />
           <h3 className="text-lg font-semibold text-gray-900">About</h3>
         </div>
-        <div className="space-y-3 text-sm text-gray-700">
+        <div className="space-y-3 text-xs leading-relaxed text-gray-500">
           <p>
-            <strong>Pre-Med Journey</strong> helps you track your progress toward medical school acceptance.
+            Pre-Med Journey helps you track your progress toward medical school acceptance. All data is stored locally on your device. Nothing is sent to external servers.
           </p>
           <p>
-            All data is stored locally on your device. Nothing is sent to external servers.
+            Disclaimer: This tool is for educational and organizational purposes only. It does not guarantee admission to any medical school or specific exam results. Always verify benchmarks with official AAMC or AACOMAS resources.
           </p>
-          <p className="text-xs text-gray-500 pt-2 border-t border-gray-200">
-            Based on "Med School Bound - The Year-by-Year Roadmap Nobody Gave You"
+          <p>
+            Based on &apos;Med School Bound – The Year-by-Year Roadmap Nobody Gave You&apos;
           </p>
+          <p>© 2026 SERH Solutions LLC. All Rights Reserved.</p>
         </div>
       </div>
     </div>
