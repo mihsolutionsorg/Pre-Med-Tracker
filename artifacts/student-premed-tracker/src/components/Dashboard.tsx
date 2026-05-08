@@ -1,5 +1,4 @@
 import { Heart, TrendingUp, Clock, Target } from 'lucide-react';
-import { MCATGPAGuide } from './MCATGPAGuide';
 
 interface Course {
   id: string;
@@ -154,16 +153,6 @@ export function Dashboard({
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-5 border-2 border-blue-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Updated GPA Benchmarks</h3>
-            <p className="text-sm text-gray-600">Now shown as stacked school-tier cards</p>
-          </div>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">New</span>
-        </div>
-      </div>
-
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-900">Overall Readiness</h3>
@@ -287,7 +276,6 @@ export function Dashboard({
         </ul>
       </div>
 
-      <MCATGPAGuide />
     </div>
   );
 }
