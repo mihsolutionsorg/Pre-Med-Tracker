@@ -33,11 +33,24 @@ export function MCATGuide({
   const [showLogTestModal, setShowLogTestModal] = useState(false);
   const [showTestWindows, setShowTestWindows] = useState(false);
   const [showStudyGuidelines, setShowStudyGuidelines] = useState(false);
+  const [draftExamPlan, setDraftExamPlan] = useState(examPlan);
   const [newTest, setNewTest] = useState({
     date: '',
     score: 500,
     source: 'AAMC',
   });
+
+  const saveExamPlan = () => {
+    onUpdateExamPlan(draftExamPlan);
+  };
+
+  const updateDraftExamPlan = (updates: Partial<ExamPlan>) => {
+    setDraftExamPlan({ ...draftExamPlan, ...updates });
+  };
+
+  const saveExamPlan = () => {
+    onUpdateExamPlan(draftExamPlan);
+  };
 
   const handleSaveTest = () => {
     if (!newTest.date || newTest.score < 472 || newTest.score > 528) return;
@@ -218,8 +231,8 @@ export function MCATGuide({
             <label className="block text-sm font-medium text-gray-700 mb-1">Target Test Date</label>
             <input
               type="date"
-              value={examPlan.targetDate}
-              onChange={(e) => onUpdateExamPlan({ ...examPlan, targetDate: e.target.value })}
+              value={draftExamPlan.targetDate}
+              onChange={(e) => updateDraftExamPlan({ targetDate: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -228,8 +241,8 @@ export function MCATGuide({
             <label className="block text-sm font-medium text-gray-700 mb-1">Target Score</label>
             <input
               type="number"
-              value={examPlan.targetScore || ''}
-              onChange={(e) => onUpdateExamPlan({ ...examPlan, targetScore: parseInt(e.target.value) || 0 })}
+              value={draftExamPlan.targetScore || ''}
+              onChange={(e) => updateDraftExamPlan({ targetScore: parseInt(e.target.value) || 0 })}
               min="472"
               max="528"
               placeholder="510"
@@ -240,8 +253,8 @@ export function MCATGuide({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Current Phase</label>
             <select
-              value={examPlan.currentPhase}
-              onChange={(e) => onUpdateExamPlan({ ...examPlan, currentPhase: e.target.value })}
+              value={draftExamPlan.currentPhase}
+              onChange={(e) => updateDraftExamPlan({ currentPhase: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select phase...</option>
@@ -256,8 +269,8 @@ export function MCATGuide({
             <label className="block text-sm font-medium text-gray-700 mb-1">Weekly Hour Goal</label>
             <input
               type="number"
-              value={examPlan.weeklyHours || ''}
-              onChange={(e) => onUpdateExamPlan({ ...examPlan, weeklyHours: parseInt(e.target.value) || 0 })}
+              value={draftExamPlan.weeklyHours || ''}
+              onChange={(e) => updateDraftExamPlan({ weeklyHours: parseInt(e.target.value) || 0 })}
               min="0"
               max="80"
               placeholder="25"
@@ -265,6 +278,12 @@ export function MCATGuide({
             />
           </div>
         </div>
+        <button
+          onClick={saveExamPlan}
+          className="mt-4 w-full flex-shrink-0 bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-lg font-semibold"
+        >
+          Save
+        </button>
       </div>
       {/* Practice Test History Chart - Vertical Bars */}
       {sortedTests.length > 0 && (
