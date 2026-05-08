@@ -145,6 +145,30 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
     }
   };
 
+  const getDOStatus = () => {
+    if (cumulativeGPA >= 3.54) {
+      return 'Competitive';
+    }
+
+    if (cumulativeGPA >= 3.2) {
+      return `Apply if ${cumulativeGPA.toFixed(2)}`;
+    }
+
+    return 'Below 3.20';
+  };
+
+  const getDOBadgeColor = () => {
+    if (cumulativeGPA >= 3.54) {
+      return 'bg-green-100 text-green-800';
+    }
+
+    if (cumulativeGPA >= 3.2) {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+
+    return 'bg-red-100 text-red-800';
+  };
+
   // GPA Projection
   const calculateProjectedGPA = () => {
     if (courses.length === 0) return cumulativeGPA;
@@ -277,8 +301,8 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
             <div key={item.tier} className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
               <div className="flex items-start justify-between gap-3 mb-4">
                 <span className="font-semibold text-gray-900">{item.tier}</span>
-                <span className="bg-red-100 text-red-800 px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap">
-                  Below 0.00
+                <span className={`${item.tier === 'DO Programs' ? getDOBadgeColor() : 'bg-red-100 text-red-800'} px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap`}>
+                  {item.tier === 'DO Programs' ? getDOStatus() : 'Below 0.00'}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700">
