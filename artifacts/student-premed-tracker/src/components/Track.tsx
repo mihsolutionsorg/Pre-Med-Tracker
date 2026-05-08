@@ -3,6 +3,7 @@ import { GraduationCap, Brain, Clock } from 'lucide-react';
 import { GPACalculator } from './GPACalculator';
 import { MCATGuide } from './MCATGuide';
 import { HoursTracker } from './HoursTracker';
+import { MCATGPAGuide } from './MCATGPAGuide';
 
 interface Course {
   id: string;
@@ -102,7 +103,10 @@ export function Track({
 
       {/* Tab Content */}
       {activeTab === 'gpa' && (
-        <GPACalculator courses={courses} onUpdateCourses={onUpdateCourses} />
+        <div className="space-y-4">
+          <GPACalculator courses={courses} onUpdateCourses={onUpdateCourses} />
+          <MCATGPAGuide />
+        </div>
       )}
 
       {activeTab === 'mcat' && (
