@@ -118,8 +118,16 @@ export function Dashboard({
 
   const currentGPA = calculateGPA(courses);
 
+  const getSemesterFocus = (yearKey: string, semesterKey: string) => {
+    const priorities = semesterPriorities[yearKey]?.[semesterKey] || [];
+    if (priorities.length === 0) return 0;
+
+    const completed = priorities.filter((priority) => completedPriorities.includes(priority.id)).length;
+    return Math.round((completed / priorities.length) * 100);
+  };
+
   // Calculate cumulative readiness from ALL semester priorities up to current position
-  const calculateCumulativeReadiness = () => {
+  const calculateApplicationReadiness = () => {
     const yearOrder = ['undergrad-freshman', 'undergrad-sophomore', 'undergrad-junior', 'undergrad-senior', 'gap-year'];
     const semesterOrder = ['fall', 'spring', 'summer'];
 
@@ -151,7 +159,8 @@ export function Dashboard({
     return totalPriorities > 0 ? Math.round((completedCount / totalPriorities) * 100) : 0;
   };
 
-  const readinessPercentage = calculateCumulativeReadiness();
+  const overallReadiness = getSemesterFocus(year, semester);
+  const applicationReadiness = calculateApplicationReadiness();
   const semesterFocus = getSemesterFocus(year, semester);
 
   return (
@@ -169,21 +178,16 @@ export function Dashboard({
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-900">Overall Readiness</h3>
-          <span className="text-2xl font-bold text-blue-600">{readinessPercentage}%</span>
+          <span className="text-2xl font-bold text-blue-600">{overallReadiness}%</span>
         </div>
         <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
           <div
             className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500"
-            style={{ width: `${readinessPercentage}%` }}
+            style={{ width: `${overallReadiness}%` }}
           />
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          Cumulative progress from Freshman Fall to {semester.charAt(0).toUpperCase() + semester.slice(1)}{' '}
-          {year === 'undergrad-freshman' && 'Freshman'}
-          {year === 'undergrad-sophomore' && 'Sophomore'}
-          {year === 'undergrad-junior' && 'Junior'}
-          {year === 'undergrad-senior' && 'Senior'}
-          {year === 'gap-year' && 'Gap Year'}
+          Current semester only
         </p>
       </div>
 
@@ -230,8 +234,8 @@ export function Dashboard({
           className="bg-white rounded-xl shadow-md p-4 text-left hover:shadow-lg transition-shadow"
         >
           <div className="text-sm text-gray-600 mb-1">Application Readiness</div>
-          <div className="text-2xl font-bold text-gray-900">{readinessPercentage}%</div>
-          <div className="text-xs text-gray-500 mt-1">Based on roadmap</div>
+          <div className="text-2xl font-bold text-gray-900">{applicationReadiness}%</div>
+          <div className="text-xs text-gray-500 mt-1">4-year cumulative progress</div>
         </button>
       </div>
 
