@@ -301,7 +301,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
 
       {/* GPA Projection Tool */}
       {courses.length > 0 && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="rounded-xl">
           <button
             onClick={() => setShowProjection(!showProjection)}
             className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
