@@ -6,6 +6,7 @@ import { Plan } from './components/Plan';
 import { Track } from './components/Track';
 import { NextWin } from './components/NextWin';
 import { Profile } from './components/Profile';
+import { MCATGPAGuide } from './components/MCATGPAGuide';
 
 interface UserProfile {
   name: string;
@@ -166,6 +167,12 @@ export default function App() {
             onViewChange={setCurrentView}
             onNavigateToTrack={handleNavigateToTrack}
           />
+        )}
+
+        {currentView === 'dashboard' && (
+          <div className="mt-6">
+            <MCATGPAGuide />
+          </div>
         )}
 
         {currentView === 'plan' && (
