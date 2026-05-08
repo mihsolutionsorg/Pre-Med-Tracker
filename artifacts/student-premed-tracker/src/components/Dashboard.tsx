@@ -156,7 +156,10 @@ export function Dashboard({
       }
     }
 
-    return totalPriorities > 0 ? Math.round((completedCount / totalPriorities) * 100) : 0;
+    const completedRoadmapItems = completedPriorities.length;
+    return totalPriorities > 0
+      ? Math.round((Math.min(completedRoadmapItems, totalPriorities) / totalPriorities) * 100)
+      : 0;
   };
 
   const overallReadiness = getSemesterReadiness(year, semester);
