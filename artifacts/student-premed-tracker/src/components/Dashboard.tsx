@@ -1,4 +1,5 @@
 import { Heart, TrendingUp, Clock, Target } from 'lucide-react';
+import { MCATGPAGuide } from './MCATGPAGuide';
 
 interface Course {
   id: string;
@@ -275,6 +276,8 @@ export function Dashboard({
           ))}
         </ul>
       </div>
+
+      <MCATGPAGuide />
     </div>
   );
 }
