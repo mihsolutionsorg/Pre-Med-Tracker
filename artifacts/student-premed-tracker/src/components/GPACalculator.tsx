@@ -301,7 +301,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
 
       {/* GPA Projection Tool */}
       {courses.length > 0 && (
-        <div className="rounded-xl">
+        <div>
           <button
             onClick={() => setShowProjection(!showProjection)}
             className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
@@ -385,7 +385,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
         </div>
       )}
 
-      <div>
+      <div className="space-y-4">
         <button
           onClick={() => setShowAddCourse(!showAddCourse)}
           className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
@@ -468,7 +468,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
       </div>
 
       {courses.length > 0 && (
-        <div>
+        <div className="space-y-3">
           <button
             onClick={() => setShowCourseList(!showCourseList)}
             className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
@@ -511,7 +511,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
       )}
 
       {courses.length === 0 && (
-        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+        <div className="border-2 border-dashed border-gray-300 p-8 text-center">
           <p className="text-gray-600">No courses added yet. Add your first course above to start tracking your GPA.</p>
         </div>
       )}
