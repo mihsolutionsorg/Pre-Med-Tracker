@@ -108,6 +108,14 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
     });
   };
 
+  const updateCourseCredits = (value: string) => {
+    const parsed = value === '' ? 0 : Number(value);
+    setNewCourse({
+      ...newCourse,
+      credits: Number.isNaN(parsed) ? 0 : parsed,
+    });
+  };
+
   const deleteCourse = (id: string) => {
     const updatedCourses = courses.filter(c => c.id !== id);
     onUpdateCourses(updatedCourses);
@@ -427,10 +435,11 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
                   <input
                     type="number"
                     value={newCourse.credits}
-                    onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => updateCourseCredits(e.target.value)}
                     min="0"
                     max="6"
-                    step="0.5"
+                    step="1"
+                    inputMode="numeric"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                   />
                 </div>
