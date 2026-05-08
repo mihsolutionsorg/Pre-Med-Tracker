@@ -48,10 +48,6 @@ export function MCATGuide({
     setDraftExamPlan({ ...draftExamPlan, ...updates });
   };
 
-  const saveExamPlan = () => {
-    onUpdateExamPlan(draftExamPlan);
-  };
-
   const handleSaveTest = () => {
     if (!newTest.date || newTest.score < 472 || newTest.score > 528) return;
 
