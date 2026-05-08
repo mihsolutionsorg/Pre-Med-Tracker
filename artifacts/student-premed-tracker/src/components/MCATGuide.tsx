@@ -70,21 +70,21 @@ export function MCATGuide({
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 rounded-xl">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Brain size={28} />
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-start gap-2">
+            <Brain size={24} className="mt-0.5" />
             <div>
+              <h2 className="text-2xl font-bold">MCAT Prep Tracker</h2>
               <div className="text-sm text-orange-100">
-                Target {examPlan.targetScore || '---'} - {hasNotTakenTest ? 'Not Tested Yet' : `Latest: ${latestScore}`}
+                Target {examPlan.targetScore || '---'} • {hasNotTakenTest ? 'Not Tested Yet' : `Latest: ${latestScore}`}
               </div>
-              <h2 className="text-2xl font-bold">Ready to Start</h2>
             </div>
           </div>
           <button
             onClick={() => setShowLogTestModal(true)}
-            className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-orange-50 transition-colors pl-[5px] pr-[5px] pt-[5px] pb-[5px]"
+            className="flex-shrink-0 bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-orange-50 transition-colors pl-[5px] pr-[5px] pt-[5px] pb-[5px]"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             Log Test
           </button>
         </div>
