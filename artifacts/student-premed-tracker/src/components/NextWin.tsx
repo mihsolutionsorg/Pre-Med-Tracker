@@ -53,7 +53,10 @@ export function NextWin({
   examPlan,
 }: NextWinProps) {
   const [showWatchItems, setShowWatchItems] = useState(false);
-  const [selectedQuickWin, setSelectedQuickWin] = useState<number | null>(null);
+  const [selectedQuickWin, setSelectedQuickWin] = useState<number | null>(() => {
+    const stored = localStorage.getItem('selectedQuickWin');
+    return stored === null ? null : Number(stored);
+  });
 
   // Calculate GPA
   const calculateGPA = (courseList: Course[]) => {
@@ -164,6 +167,16 @@ export function NextWin({
     quickWins.push('Add your courses to track GPA');
   }
 
+  const handleQuickWinSelect = (idx: number) => {
+    const nextValue = selectedQuickWin === idx ? null : idx;
+    setSelectedQuickWin(nextValue);
+    if (nextValue === null) {
+      localStorage.removeItem('selectedQuickWin');
+    } else {
+      localStorage.setItem('selectedQuickWin', String(nextValue));
+    }
+  };
+
   // Items to watch
   const watchItems = [];
   if (currentGPA > 0 && currentGPA < 3.65) {
@@ -225,7 +238,7 @@ export function NextWin({
               <button
                 key={idx}
                 type="button"
-                onClick={() => setSelectedQuickWin(selectedQuickWin === idx ? null : idx)}
+                onClick={() => handleQuickWinSelect(idx)}
                 className="w-full flex items-start gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all text-left"
               >
                 <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
