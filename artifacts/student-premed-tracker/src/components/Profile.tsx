@@ -14,6 +14,7 @@ interface ProfileProps {
 
 export function Profile({ userProfile }: ProfileProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleExportExcel = () => {
     const gradePoints: Record<string, number> = {
@@ -277,12 +278,69 @@ export function Profile({ userProfile }: ProfileProps) {
           </p>
           <p>© 2026 SERH Solutions LLC. All Rights Reserved.</p>
           <p className="pt-2">
-            <a href="/terms.html" target="_blank" rel="noreferrer" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+            <button
+              type="button"
+              onClick={() => setShowTermsModal(true)}
+              className="text-xs font-medium text-blue-600 hover:text-blue-700"
+            >
               View Full Terms &amp; Conditions
-            </a>
+            </button>
           </p>
         </div>
       </div>
+
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Terms and Conditions</h3>
+                <p className="mt-1 text-sm text-gray-500">Pre-Med Tracker &amp; Med School Bound Roadmap</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(false)}
+                className="rounded-lg px-3 py-1 text-sm text-gray-500 hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-5 text-sm leading-relaxed text-gray-700">
+              <section>
+                <h4 className="font-semibold text-gray-900">1. Scope of Service &amp; No Guarantee</h4>
+                <p className="mt-2">
+                  The Pre-Med Tracker and the Med School Bound Roadmap are educational tools designed to help students organize their application journey. SERH Solutions LLC does not guarantee admission to any medical school, specific test scores (MCAT), or academic outcomes. Admissions decisions are made solely by the respective institutions. Users are responsible for verifying all deadlines and requirements with official bodies like the AAMC (AMCAS) or AACOMAS.
+                </p>
+              </section>
+
+              <section>
+                <h4 className="font-semibold text-gray-900">2. Privacy &amp; Data Storage</h4>
+                <p className="mt-2">We value your privacy. The Pre-Med Tracker is designed as a "local-first" application. This means:</p>
+                <ul className="mt-2 list-disc space-y-2 pl-5">
+                  <li>All data you enter (GPA, hours, scores) is stored locally on your own device&apos;s browser.</li>
+                  <li>SERH Solutions LLC does not collect, store, or have access to your personal data or academic records.</li>
+                  <li>Clearing your browser cache or data may result in the loss of entered information. We recommend using the "Export to Excel" feature regularly to back up your data.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4 className="font-semibold text-gray-900">3. Digital Sales &amp; Intellectual Property</h4>
+                <p className="mt-2">By purchasing access to these tools, you are granted a single-user license.</p>
+                <ul className="mt-2 list-disc space-y-2 pl-5">
+                  <li><strong>No Refunds:</strong> Due to the digital nature of these products, all sales are final once access is provided.</li>
+                  <li><strong>Property Rights:</strong> The code, design, and content of the Roadmap and Tracker are the intellectual property of SERH Solutions LLC. Unauthorized distribution, reselling, or "cloning" of these tools is strictly prohibited.</li>
+                  <li><strong>Support:</strong> SERH Solutions LLC provides the tool "as-is" and is not responsible for technical issues arising from the user's hardware or browser compatibility.</li>
+                </ul>
+              </section>
+            </div>
+
+            <div className="mt-6 border-t border-gray-200 pt-4 text-xs text-gray-500">
+              © 2026 SERH Solutions LLC. All Rights Reserved.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
