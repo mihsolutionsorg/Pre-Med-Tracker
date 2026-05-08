@@ -33,6 +33,7 @@ const gradePoints: Record<string, number> = {
 export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) {
   const [showCourseList, setShowCourseList] = useState(false);
   const [showProjection, setShowProjection] = useState(false);
+  const [showAddCourse, setShowAddCourse] = useState(false);
   const [projectionCredits, setProjectionCredits] = useState(12);
   const [projectionGrade, setProjectionGrade] = useState('A');
   const [newCourse, setNewCourse] = useState({
@@ -379,71 +380,85 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Course</h3>
-        <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <button
+          onClick={() => setShowAddCourse(!showAddCourse)}
+          className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+        >
           <div>
-            <label className="block text-sm text-gray-700 mb-1">Course Name</label>
-            <input
-              type="text"
-              value={newCourse.name}
-              onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-              placeholder="e.g., General Chemistry I"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-            />
+            <h3 className="text-lg font-semibold text-gray-900">Add Course</h3>
+            <p className="text-sm text-gray-600">Expand to add a new class</p>
           </div>
+          {showAddCourse ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+        </button>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Grade</label>
-              <select
-                value={newCourse.grade}
-                onChange={(e) => setNewCourse({ ...newCourse, grade: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+        {showAddCourse && (
+          <div className="px-5 pb-5">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Course Name</label>
+                <input
+                  type="text"
+                  value={newCourse.name}
+                  onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                  placeholder="e.g., General Chemistry I"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Grade</label>
+                  <select
+                    value={newCourse.grade}
+                    onChange={(e) => setNewCourse({ ...newCourse, grade: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  >
+                    {Object.keys(gradePoints).map((grade) => (
+                      <option key={grade} value={grade}>
+                        {grade} ({gradePoints[grade].toFixed(1)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Credits</label>
+                  <input
+                    type="number"
+                    value={newCourse.credits}
+                    onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    max="6"
+                    step="0.5"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="bcpm"
+                  checked={newCourse.isBCPM}
+                  onChange={(e) => setNewCourse({ ...newCourse, isBCPM: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="bcpm" className="text-sm text-gray-700">
+                  BCPM Course (Biology, Chemistry, Physics, Math)
+                </label>
+              </div>
+
+              <button
+                onClick={addCourse}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2"
               >
-                {Object.keys(gradePoints).map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade} ({gradePoints[grade].toFixed(1)})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Credits</label>
-              <input
-                type="number"
-                value={newCourse.credits}
-                onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
-                min="0"
-                max="6"
-                step="0.5"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
+                <Plus size={20} />
+                Add Course
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="bcpm"
-              checked={newCourse.isBCPM}
-              onChange={(e) => setNewCourse({ ...newCourse, isBCPM: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="bcpm" className="text-sm text-gray-700">
-              BCPM Course (Biology, Chemistry, Physics, Math)
-            </label>
-          </div>
-
-          <button
-            onClick={addCourse}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2"
-          >
-            <Plus size={20} />
-            Add Course
-          </button>
-        </div>
+        )}
       </div>
 
       {courses.length > 0 && (
