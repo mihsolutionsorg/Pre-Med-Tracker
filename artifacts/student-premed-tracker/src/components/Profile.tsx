@@ -1,4 +1,4 @@
-import { User, FileDown, Trash2, Info, FileSpreadsheet } from 'lucide-react';
+import { User, Trash2, Info, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface ProfileProps {
@@ -12,27 +12,6 @@ interface ProfileProps {
 }
 
 export function Profile({ userProfile }: ProfileProps) {
-  const handleExportData = () => {
-    const allData = {
-      profile: userProfile,
-      courses: localStorage.getItem('premed-courses'),
-      hours: localStorage.getItem('premed-hours'),
-      examPlan: localStorage.getItem('premed-exam-plan'),
-      practiceTests: localStorage.getItem('premed-practice-tests'),
-      priorities: localStorage.getItem('premed-priorities'),
-      exportDate: new Date().toISOString(),
-    };
-
-    const dataStr = JSON.stringify(allData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `premed-data-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleExportExcel = () => {
     const gradePoints: Record<string, number> = {
       'A+': 4.0, 'A': 4.0, 'A-': 3.7,
@@ -151,7 +130,7 @@ export function Profile({ userProfile }: ProfileProps) {
       ['Roadmap Progress'],
       ['Completed Priorities:', prioritiesCount],
       [],
-      ['Note: Detailed priority checklist available in JSON export'],
+      ['Note: Detailed priority checklist available in the app'],
     ];
     const wsProgress = XLSX.utils.aoa_to_sheet(progressData);
     XLSX.utils.book_append_sheet(wb, wsProgress, 'Roadmap Progress');
@@ -235,19 +214,6 @@ export function Profile({ userProfile }: ProfileProps) {
               <div className="text-left">
                 <div className="font-semibold text-gray-900">Export to Excel</div>
                 <div className="text-sm text-gray-600">Download formatted spreadsheet for analysis</div>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={handleExportData}
-            className="w-full flex items-center justify-between p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <FileDown className="text-blue-600" size={24} />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Export to JSON</div>
-                <div className="text-sm text-gray-600">Download raw data backup</div>
               </div>
             </div>
           </button>
