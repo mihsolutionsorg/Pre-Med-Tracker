@@ -12,6 +12,8 @@ interface UserProfile {
   school: string;
   year: string;
   semester: string;
+  planYear?: string;
+  planSemester?: string;
   track: string;
 }
 
@@ -44,6 +46,8 @@ export default function App() {
     school: '',
     year: 'undergrad-freshman',
     semester: 'fall',
+    planYear: 'undergrad-freshman',
+    planSemester: 'fall',
     track: 'both',
   });
   const [completedMilestones, setCompletedMilestones] = useState<string[]>([]);
@@ -88,10 +92,15 @@ export default function App() {
   }, []);
 
   const handleOnboardingComplete = (data: UserProfile) => {
-    setUserProfile(data);
+    const profile = {
+      ...data,
+      planYear: data.year,
+      planSemester: data.semester,
+    };
+    setUserProfile(profile);
     setHasCompletedOnboarding(true);
     localStorage.setItem('premed-onboarding-complete', 'true');
-    localStorage.setItem('premed-profile', JSON.stringify(data));
+    localStorage.setItem('premed-profile', JSON.stringify(profile));
   };
 
   const handleToggleMilestone = (id: string) => {
@@ -155,8 +164,8 @@ export default function App() {
         {currentView === 'dashboard' && (
           <Dashboard
             name={userProfile.name}
-            year={userProfile.year}
-            semester={userProfile.semester}
+            year={userProfile.planYear || userProfile.year}
+            semester={userProfile.planSemester || userProfile.semester}
             completedMilestones={completedMilestones}
             completedPriorities={completedPriorities}
             experienceHours={experienceHours}
@@ -170,8 +179,8 @@ export default function App() {
 
         {currentView === 'plan' && (
           <Plan
-            currentYear={userProfile.year}
-            currentSemester={userProfile.semester}
+            currentYear={userProfile.planYear || userProfile.year}
+            currentSemester={userProfile.planSemester || userProfile.semester}
             currentTrack={userProfile.track}
             completedPriorities={completedPriorities}
             onTogglePriority={handleTogglePriority}
@@ -195,8 +204,8 @@ export default function App() {
 
         {currentView === 'focus' && (
           <NextWin
-            currentYear={userProfile.year}
-            currentSemester={userProfile.semester}
+            currentYear={userProfile.planYear || userProfile.year}
+            currentSemester={userProfile.planSemester || userProfile.semester}
             completedPriorities={completedPriorities}
             experienceHours={experienceHours}
             courses={courses}
