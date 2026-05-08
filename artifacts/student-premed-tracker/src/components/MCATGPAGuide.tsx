@@ -15,49 +15,87 @@ export function MCATGPAGuide() {
           <h3 className="text-xl font-bold text-gray-900">GPA Benchmarks by School Tier</h3>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2 border-gray-300">
-                <th className="text-left py-3 px-3 font-semibold text-gray-900 w-[30%]">School Tier</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-900 w-[22%]">Avg Cumulative GPA</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-900 w-[22%]">Avg Science GPA</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-900 w-[26%]">Your Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-3 font-medium text-gray-800">Top 20 MD</td>
-                <td className="py-3 px-3 text-gray-700">3.85-3.95</td>
-                <td className="py-3 px-3 text-gray-700">3.80-3.92</td>
-                <td className="py-3 px-3"><span className="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">3.75</span></td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-3 font-medium text-gray-800">Top 21-50 MD</td>
-                <td className="py-3 px-3 text-gray-700">3.75-3.85</td>
-                <td className="py-3 px-3 text-gray-700">3.70-3.82</td>
-                <td className="py-3 px-3"><span className="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">3.65</span></td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-3 font-medium text-gray-800">Mid-Tier MD (51-100)</td>
-                <td className="py-3 px-3 text-gray-700">3.65-3.75</td>
-                <td className="py-3 px-3 text-gray-700">3.60-3.72</td>
-                <td className="py-3 px-3"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">3.5</span></td>
-              </tr>
-              <tr className="border-b border-gray-200">
-                <td className="py-3 px-3 font-medium text-gray-800">Lower Tier MD</td>
-                <td className="py-3 px-3 text-gray-700">3.50-3.65</td>
-                <td className="py-3 px-3 text-gray-700">3.45-3.60</td>
-                <td className="py-3 px-3"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">3.3</span></td>
-              </tr>
-              <tr>
-                <td className="py-3 px-3 font-medium text-gray-800">DO Programs</td>
-                <td className="py-3 px-3 text-gray-700">3.54-3.65</td>
-                <td className="py-3 px-3 text-gray-700">3.48-3.58</td>
-                <td className="py-3 px-3"><span className="bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium">3.2</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900">Top 20 MD</span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm font-medium">3.75</span>
+            </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Cumulative:</span>{' '}
+                <span className="font-medium text-gray-900">3.85-3.95</span>
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Science:</span>{' '}
+                <span className="font-medium text-gray-900">3.80-3.92</span>
+              </div>
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900">Top 21-50 MD</span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm font-medium">3.65</span>
+            </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Cumulative:</span>{' '}
+                <span className="font-medium text-gray-900">3.75-3.85</span>
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Science:</span>{' '}
+                <span className="font-medium text-gray-900">3.70-3.82</span>
+              </div>
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900">Mid-Tier MD (51-100)</span>
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-medium">3.5</span>
+            </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Cumulative:</span>{' '}
+                <span className="font-medium text-gray-900">3.65-3.75</span>
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Science:</span>{' '}
+                <span className="font-medium text-gray-900">3.60-3.72</span>
+              </div>
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900">Lower Tier MD</span>
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-medium">3.3</span>
+            </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Cumulative:</span>{' '}
+                <span className="font-medium text-gray-900">3.50-3.65</span>
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Science:</span>{' '}
+                <span className="font-medium text-gray-900">3.45-3.60</span>
+              </div>
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-gray-900">DO Programs</span>
+              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded text-sm font-medium">3.2</span>
+            </div>
+            <div className="flex gap-4 text-sm flex-wrap">
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Cumulative:</span>{' '}
+                <span className="font-medium text-gray-900">3.54-3.65</span>
+              </div>
+              <div className="whitespace-nowrap">
+                <span className="text-gray-600">Science:</span>{' '}
+                <span className="font-medium text-gray-900">3.48-3.58</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">

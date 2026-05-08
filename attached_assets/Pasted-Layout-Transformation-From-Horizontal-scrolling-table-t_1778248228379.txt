@@ -1,0 +1,73 @@
+Layout Transformation
+From: Horizontal scrolling table (<table>)
+To: Vertical card stack (<div> cards)
+Structure Changes
+Container:
+
+Changed from <div className="overflow-x-auto"> with table
+To <div className="space-y-3"> (vertical card stack with 12px gaps)
+Each School Tier Card:
+
+Container: border border-gray-200 rounded-lg p-4 bg-white
+Border: 1px gray
+Rounded corners: 8px (lg)
+Padding: 16px (p-4) all sides
+Background: white
+Card Internal Layout
+Top Section (School Name + Status Badge):
+
+className="flex items-center justify-between mb-3"
+Display: flex
+Align items: center (vertical center)
+Justify: space-between (name left, badge right)
+Margin bottom: 12px (mb-3) - increased from mb-2 (8px)
+School Name:
+
+className="font-semibold text-gray-900"
+Font weight: 600 (semibold)
+Color: gray-900 (near black)
+Status Badge: (no spacing changes)
+
+className="px-3 py-1 rounded text-sm font-medium ${dynamic-colors}"
+Padding horizontal: 12px (px-3)
+Padding vertical: 4px (py-1)
+Border radius: 4px (rounded)
+Font size: 14px (text-sm)
+Font weight: 500 (font-medium)
+Bottom Section (GPA Values):
+
+className="flex gap-4 text-sm flex-wrap"
+Display: flex (changed from grid grid-cols-2)
+Gap: 16px (gap-4) between items - increased from 8px (gap-2)
+Font size: 14px (text-sm)
+Flex-wrap: enabled (wraps complete units to next line)
+Each GPA Item:
+
+className="whitespace-nowrap"
+Whitespace: nowrap (prevents label-value separation)
+Label text: text-gray-600
+Value text: font-medium text-gray-900
+Typography Changes
+Labels:
+
+Before: "Avg Cumulative:" and "Avg Science:"
+After: "Cumulative:" and "Science:"
+Character reduction: ~40% shorter labels
+Spacing Summary
+Element	Before	After	Change
+Between cards	N/A (table rows)	12px (space-y-3)	New
+Card padding	N/A	16px all sides (p-4)	New
+Header to content	8px (mb-2)	12px (mb-3)	+4px
+Between GPA items	8px (gap-2)	16px (gap-4)	+8px
+Table cell padding	12px (px-3, py-3)	N/A (removed)	-
+Responsive Behavior
+Before: Required horizontal scrolling on narrow screens
+After:
+Cards stack vertically (no horizontal scroll)
+GPA values flex horizontally with wrapping
+Each label-value pair wraps as a complete unit
+Color Palette (unchanged)
+Borders: border-gray-200 (#E5E7EB)
+Labels: text-gray-600 (#4B5563)
+Values: text-gray-900 (#111827)
+Card background: bg-white (#FFFFFF)
