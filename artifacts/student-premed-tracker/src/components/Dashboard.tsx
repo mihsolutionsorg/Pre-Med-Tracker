@@ -21,6 +21,7 @@ interface DashboardProps {
   semester: string;
   planYear?: string;
   planSemester?: string;
+  roadmapCompletedPriorities?: string[];
   completedMilestones: string[];
   completedPriorities: string[];
   experienceHours: {
@@ -87,6 +88,7 @@ export function Dashboard({
   semester,
   planYear,
   planSemester,
+  roadmapCompletedPriorities,
   completedMilestones,
   completedPriorities,
   experienceHours,
@@ -155,9 +157,16 @@ export function Dashboard({
 
   const selectedYear = planYear || year;
   const selectedSemester = planSemester || semester;
-  const overallReadiness = getSemesterReadiness(selectedYear, selectedSemester);
+  const semesterPrioritiesList = semesterPriorities[selectedYear]?.[selectedSemester] || [];
+  const selectedSemesterCompleted = semesterPrioritiesList.filter((priority) =>
+    completedPriorities.includes(priority.id)
+  ).length;
+  const overallReadiness = semesterPrioritiesList.length > 0
+    ? Math.round((selectedSemesterCompleted / semesterPrioritiesList.length) * 100)
+    : 0;
   const applicationReadiness = calculateApplicationReadiness();
   const semesterFocus = getSemesterFocusList(selectedYear, selectedSemester);
+  const semesterOnlyCompletedPriorities = roadmapCompletedPriorities || completedPriorities.filter((id) => id.startsWith(getSemesterPrefix(selectedYear, selectedSemester)));
 
   return (
     <div className="space-y-6">
@@ -389,4 +398,22 @@ function getSemesterFocusList(year: string, semester: string): string[] {
   };
 
   return focuses[year]?.[semester] || ['Focus on your current semester priorities'];
+}
+
+function getSemesterPrefix(year: string, semester: string) {
+  const yearPrefix: Record<string, string> = {
+    'undergrad-freshman': 'fr',
+    'undergrad-sophomore': 'so',
+    'undergrad-junior': 'ju',
+    'undergrad-senior': 'se',
+    'gap-year': 'gap',
+  };
+
+  const semesterPrefix: Record<string, string> = {
+    fall: 'f',
+    spring: 's',
+    summer: 'su',
+  };
+
+  return `${yearPrefix[year] || year}-${semesterPrefix[semester] || semester}`;
 }
