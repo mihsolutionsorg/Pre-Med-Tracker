@@ -71,8 +71,8 @@ export function MCATGuide({
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 rounded-xl">
         <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-start gap-2">
-            <Brain size={24} className="mt-0.5" />
+          <div className="flex items-center gap-2">
+            <Brain size={24} />
             <div>
               <h2 className="text-2xl font-bold">MCAT Prep Tracker</h2>
               <div className="text-sm text-orange-100">
