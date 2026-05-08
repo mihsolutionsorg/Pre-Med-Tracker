@@ -122,7 +122,24 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
   };
 
   const handlePrint = () => {
-    window.print();
+    if (courses.length === 0) return;
+
+    const rows = [
+      ['Name', 'Grade', 'Credits'],
+      ...courses.map(course => [course.name, course.grade, String(course.credits)]),
+    ];
+
+    const csv = rows
+      .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'gpa-courses.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const getSchoolTierColor = (avgGPA: number, applyThreshold: number) => {
