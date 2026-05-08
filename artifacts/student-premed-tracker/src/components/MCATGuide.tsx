@@ -82,7 +82,7 @@ export function MCATGuide({
           </div>
           <button
             onClick={() => setShowLogTestModal(true)}
-            className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-orange-50 transition-colors"
+            className="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-orange-50 transition-colors pl-[5px] pr-[5px] pt-[5px] pb-[5px]"
           >
             <Plus size={20} />
             Log Test
@@ -92,7 +92,6 @@ export function MCATGuide({
           The MCAT screens applications before a human reads them. Your latest score matters most.
         </p>
       </div>
-
       {/* Log Test Modal */}
       {showLogTestModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -165,7 +164,6 @@ export function MCATGuide({
           </div>
         </div>
       )}
-
       {/* MCAT Score Benchmarks */}
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="flex items-center gap-2 mb-4">
@@ -212,7 +210,6 @@ export function MCATGuide({
           </table>
         </div>
       </div>
-
       {/* Exam Plan */}
       <div className="bg-white rounded-xl shadow-md p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Exam Plan</h3>
@@ -269,7 +266,6 @@ export function MCATGuide({
           </div>
         </div>
       </div>
-
       {/* Practice Test History Chart - Vertical Bars */}
       {sortedTests.length > 0 && (
         <div className="bg-white rounded-xl shadow-md p-5">
@@ -375,7 +371,6 @@ export function MCATGuide({
           </div>
         </div>
       )}
-
       {/* Smart Recommendations */}
       {sortedTests.length >= 2 && (
         <div className="bg-white rounded-xl shadow-md p-5">
@@ -480,7 +475,6 @@ export function MCATGuide({
           })()}
         </div>
       )}
-
       {/* Collapsible Sections */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <button
@@ -521,7 +515,6 @@ export function MCATGuide({
           </div>
         )}
       </div>
-
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <button
           onClick={() => setShowStudyGuidelines(!showStudyGuidelines)}
