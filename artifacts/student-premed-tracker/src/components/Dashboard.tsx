@@ -92,6 +92,19 @@ export function Dashboard({
   onViewChange,
   onNavigateToTrack,
 }: DashboardProps) {
+  const formatTargetDate = (value: string) => {
+    if (!value) return 'TBD';
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return parsed.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: '2-digit',
+    });
+  };
+
   // Calculate GPA from courses
   const calculateGPA = (courseList: Course[]) => {
     if (courseList.length === 0) return 0;
@@ -197,7 +210,7 @@ export function Dashboard({
             {examPlan.targetScore > 0 ? examPlan.targetScore : 'Not Set'}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {examPlan.targetScore > 0 ? `Target: ${examPlan.targetDate || 'TBD'}` : 'Tap to set goal'}
+            {examPlan.targetScore > 0 ? `Target: ${formatTargetDate(examPlan.targetDate)}` : 'Tap to set goal'}
           </div>
         </button>
 
