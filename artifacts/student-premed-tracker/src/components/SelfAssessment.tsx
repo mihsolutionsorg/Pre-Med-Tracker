@@ -376,12 +376,6 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
         <p className="text-purple-100 font-medium mb-2">
           Answer honestly. No partial credit.
         </p>
-        <div className="inline-flex items-center gap-2 bg-white bg-opacity-20 rounded-lg px-3 py-1.5">
-          <span className="text-xs font-semibold">Based on:</span>
-          <span className="text-sm font-bold">
-            {getYearLabel(currentYear)} - {currentSemester.charAt(0).toUpperCase() + currentSemester.slice(1)}
-          </span>
-        </div>
       </div>
 
       <div className="space-y-4">
