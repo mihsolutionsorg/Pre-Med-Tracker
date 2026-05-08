@@ -146,8 +146,41 @@ const semesterPriorities: Record<string, Record<string, Priority[]>> = {
 export function SelfAssessment({ currentYear, currentSemester, completedPriorities }: SelfAssessmentProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedSemester, setSelectedSemester] = useState(currentSemester);
 
-  const priorities = semesterPriorities[currentYear]?.[currentSemester] || [];
+  useEffect(() => {
+    const syncTimeframe = () => {
+      const saved = localStorage.getItem('premed-roadmap-timeframe');
+      if (!saved) {
+        setSelectedYear(currentYear);
+        setSelectedSemester(currentSemester);
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+        setSelectedYear(parsed.year || currentYear);
+        setSelectedSemester(parsed.semester || currentSemester);
+      } catch {
+        setSelectedYear(currentYear);
+        setSelectedSemester(currentSemester);
+      }
+    };
+
+    syncTimeframe();
+
+    const handleTimeframeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ year?: string; semester?: string }>;
+      if (customEvent.detail?.year) setSelectedYear(customEvent.detail.year);
+      if (customEvent.detail?.semester) setSelectedSemester(customEvent.detail.semester);
+    };
+
+    window.addEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
+    return () => window.removeEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
+  }, [currentYear, currentSemester]);
+
+  const priorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
 
   // Initialize answers based on completed priorities
   useEffect(() => {
@@ -156,7 +189,7 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
       initialAnswers[priority.id] = completedPriorities.includes(priority.id);
     });
     setAnswers(initialAnswers);
-  }, [currentYear, currentSemester, completedPriorities]);
+  }, [selectedYear, selectedSemester, completedPriorities]);
 
   const handleAnswer = (priorityId: string, answer: boolean) => {
     setAnswers(prev => ({ ...prev, [priorityId]: answer }));

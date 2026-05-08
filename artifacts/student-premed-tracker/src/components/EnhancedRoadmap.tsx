@@ -172,6 +172,12 @@ export function EnhancedRoadmap({
     localStorage.setItem(storageKey, JSON.stringify({ year: selectedYear, semester: selectedSemester }));
   }, [selectedYear, selectedSemester]);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('premed-roadmap-timeframe-change', {
+      detail: { year: selectedYear, semester: selectedSemester }
+    }));
+  }, [selectedYear, selectedSemester]);
+
   const priorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
   const completedCount = priorities.filter(p => completedPriorities.includes(p.id)).length;
 

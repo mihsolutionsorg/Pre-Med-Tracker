@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Map, CheckSquare } from 'lucide-react';
 import { EnhancedRoadmap } from './EnhancedRoadmap';
 import { SelfAssessment } from './SelfAssessment';
@@ -19,6 +19,46 @@ export function Plan({
   onTogglePriority,
 }: PlanProps) {
   const [activeTab, setActiveTab] = useState<'roadmap' | 'check-in'>('roadmap');
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedSemester, setSelectedSemester] = useState(currentSemester);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('premed-roadmap-timeframe');
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.year) setSelectedYear(parsed.year);
+      if (parsed.semester) setSelectedSemester(parsed.semester);
+    } catch {
+      localStorage.removeItem('premed-roadmap-timeframe');
+    }
+  }, []);
+
+  useEffect(() => {
+    const syncFromSaved = () => {
+      const saved = localStorage.getItem('premed-roadmap-timeframe');
+      if (!saved) return;
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.year) setSelectedYear(parsed.year);
+        if (parsed.semester) setSelectedSemester(parsed.semester);
+      } catch {
+        localStorage.removeItem('premed-roadmap-timeframe');
+      }
+    };
+
+    syncFromSaved();
+
+    const handleTimeframeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ year?: string; semester?: string }>;
+      if (customEvent.detail?.year) setSelectedYear(customEvent.detail.year);
+      if (customEvent.detail?.semester) setSelectedSemester(customEvent.detail.semester);
+    };
+
+    window.addEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
+    return () => window.removeEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -51,8 +91,8 @@ export function Plan({
       {/* Tab Content */}
       {activeTab === 'roadmap' && (
         <EnhancedRoadmap
-          currentYear={currentYear}
-          currentSemester={currentSemester}
+          currentYear={selectedYear}
+          currentSemester={selectedSemester}
           currentTrack={currentTrack}
           completedPriorities={completedPriorities}
           onTogglePriority={onTogglePriority}
@@ -61,8 +101,8 @@ export function Plan({
 
       {activeTab === 'check-in' && (
         <SelfAssessment
-          currentYear={currentYear}
-          currentSemester={currentSemester}
+          currentYear={selectedYear}
+          currentSemester={selectedSemester}
           completedPriorities={completedPriorities}
         />
       )}
