@@ -292,17 +292,17 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
 
         <div className="space-y-4">
           {[
-            { tier: 'Top 20 MD', cumulative: '3.85-3.95', science: '3.80-3.92' },
-            { tier: 'Top 21-50 MD', cumulative: '3.75-3.85', science: '3.70-3.82' },
-            { tier: 'Mid-Tier MD', cumulative: '3.65-3.75', science: '3.60-3.72' },
-            { tier: 'Lower Tier MD', cumulative: '3.50-3.65', science: '3.45-3.60' },
-            { tier: 'DO Programs', cumulative: '3.54-3.65', science: '3.48-3.58' },
+            { tier: 'Top 20 MD', cumulative: '3.85-3.95', science: '3.80-3.92', threshold: 3.85 },
+            { tier: 'Top 21-50 MD', cumulative: '3.75-3.85', science: '3.70-3.82', threshold: 3.75 },
+            { tier: 'Mid-Tier MD', cumulative: '3.65-3.75', science: '3.60-3.72', threshold: 3.65 },
+            { tier: 'Lower Tier MD', cumulative: '3.50-3.65', science: '3.45-3.60', threshold: 3.5 },
+            { tier: 'DO Programs', cumulative: '3.54-3.65', science: '3.48-3.58', threshold: 3.54 },
           ].map((item) => (
             <div key={item.tier} className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
               <div className="flex items-start justify-between gap-3 mb-4">
                 <span className="font-semibold text-gray-900">{item.tier}</span>
-                <span className={`${item.tier === 'DO Programs' ? getDOBadgeColor() : 'bg-red-100 text-red-800'} px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap`}>
-                  {item.tier === 'DO Programs' ? getDOStatus() : 'Below 0.00'}
+                <span className={`${cumulativeGPA >= item.threshold ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap`}>
+                  {cumulativeGPA >= item.threshold ? 'Competitive' : `Below ${item.threshold.toFixed(2)}`}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700">
