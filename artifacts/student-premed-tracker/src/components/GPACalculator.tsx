@@ -448,66 +448,42 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
 
       {courses.length > 0 && (
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="flex items-center justify-between p-5 border-b border-gray-200">
-            <button
-              onClick={() => setShowCourseList(!showCourseList)}
-              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
-            >
+          <button
+            onClick={() => setShowCourseList(!showCourseList)}
+            className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+          >
+            <div>
               <h3 className="text-lg font-semibold text-gray-900">Your Courses ({courses.length})</h3>
-              <span className="text-sm text-gray-600">• {totalCredits} credits</span>
-              {showCourseList ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
-            >
-              <Printer size={16} />
-              Print
-            </button>
-          </div>
+              <p className="text-sm text-gray-600">{totalCredits} credits total</p>
+            </div>
+            {showCourseList ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+          </button>
 
           {showCourseList && (
-            <div className="px-5 pb-5">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-gray-300">
-                      <th className="text-left py-2 px-2 font-semibold text-gray-900">Course</th>
-                      <th className="text-left py-2 px-2 font-semibold text-gray-900">Grade</th>
-                      <th className="text-left py-2 px-2 font-semibold text-gray-900">Credits</th>
-                      <th className="text-left py-2 px-2 font-semibold text-gray-900">Type</th>
-                      <th className="text-left py-2 px-2 font-semibold text-gray-900"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {courses.map((course) => (
-                      <tr key={course.id} className="border-b border-gray-200">
-                        <td className="py-3 px-2 text-gray-800">{course.name}</td>
-                        <td className="py-3 px-2">
-                          <span className="font-semibold text-gray-900">{course.grade}</span>
-                          <span className="text-xs text-gray-600 ml-1">({gradePoints[course.grade].toFixed(1)})</span>
-                        </td>
-                        <td className="py-3 px-2 text-gray-700">{course.credits}</td>
-                        <td className="py-3 px-2">
-                          {course.isBCPM ? (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">BCPM</span>
-                          ) : (
-                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">Other</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-2">
-                          <button
-                            onClick={() => deleteCourse(course.id)}
-                            className="text-red-600 hover:text-red-700 p-1"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="px-5 pb-5 space-y-3">
+              {courses.map((course) => (
+                <div key={course.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-gray-900 truncate">{course.name}</div>
+                    <div className="text-sm text-gray-600">
+                      {course.grade} • {course.credits} credits • {course.isBCPM ? 'BCPM' : 'Other'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteCourse(course.id)}
+                    className="text-red-600 hover:text-red-700 p-1 shrink-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={handlePrint}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+              >
+                <Printer size={16} />
+                Print
+              </button>
             </div>
           )}
         </div>
