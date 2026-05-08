@@ -19,6 +19,8 @@ interface DashboardProps {
   name: string;
   year: string;
   semester: string;
+  planYear?: string;
+  planSemester?: string;
   completedMilestones: string[];
   completedPriorities: string[];
   experienceHours: {
@@ -83,6 +85,8 @@ export function Dashboard({
   name,
   year,
   semester,
+  planYear,
+  planSemester,
   completedMilestones,
   completedPriorities,
   experienceHours,
@@ -149,9 +153,11 @@ export function Dashboard({
     return Math.round((completedCount / roadmapIds.length) * 100);
   };
 
-  const overallReadiness = getSemesterReadiness(year, semester);
+  const selectedYear = planYear || year;
+  const selectedSemester = planSemester || semester;
+  const overallReadiness = getSemesterReadiness(selectedYear, selectedSemester);
   const applicationReadiness = calculateApplicationReadiness();
-  const semesterFocus = getSemesterFocusList(year, semester);
+  const semesterFocus = getSemesterFocusList(selectedYear, selectedSemester);
 
   return (
     <div className="space-y-6">
