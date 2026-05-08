@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BookOpen, Stethoscope, Users, FileText, Brain, Heart, Check } from 'lucide-react';
 
 interface EnhancedRoadmapProps {
@@ -152,8 +152,25 @@ export function EnhancedRoadmap({
   completedPriorities,
   onTogglePriority,
 }: EnhancedRoadmapProps) {
+  const storageKey = 'premed-roadmap-timeframe';
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedSemester, setSelectedSemester] = useState(currentSemester);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.year) setSelectedYear(parsed.year);
+      if (parsed.semester) setSelectedSemester(parsed.semester);
+    } catch {
+      localStorage.removeItem(storageKey);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify({ year: selectedYear, semester: selectedSemester }));
+  }, [selectedYear, selectedSemester]);
 
   const priorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
   const completedCount = priorities.filter(p => completedPriorities.includes(p.id)).length;
