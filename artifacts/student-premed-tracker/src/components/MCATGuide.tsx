@@ -291,7 +291,7 @@ export function MCATGuide({
           <div className="mb-6">
             <div className="flex items-end justify-between gap-2 h-64 border-b-2 border-gray-300 pb-2">
               {sortedTests.map((test, index) => {
-                const barHeight = 20 + ((test.score - minChartScore) / (maxChartScore - minChartScore)) * 60;
+                const barHeight = 18 + ((test.score - minChartScore) / (maxChartScore - minChartScore)) * 82;
                 const isImprovement = index > 0 && test.score > sortedTests[index - 1].score;
                 const isDecline = index > 0 && test.score < sortedTests[index - 1].score;
 
@@ -299,7 +299,8 @@ export function MCATGuide({
                   <div key={test.id} className="flex-1 flex flex-col items-center gap-2">
                     <button
                       onClick={() => onDeletePracticeTest(test.id)}
-                      className="text-red-600 hover:text-red-700 opacity-0 hover:opacity-100 transition-opacity"
+                      className="text-red-600 hover:text-red-700 transition-opacity"
+                      aria-label={`Delete ${test.source} test on ${test.date}`}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -322,7 +323,7 @@ export function MCATGuide({
                               ? 'bg-gradient-to-t from-yellow-500 to-yellow-400'
                               : 'bg-gradient-to-t from-orange-500 to-orange-400'
                           }`}
-                          style={{ height: `${barHeight}%`, minHeight: '40px' }}
+                          style={{ height: `${barHeight}%`, minHeight: '40px', maxHeight: '100%' }}
                         />
                       </div>
                     </div>
