@@ -192,7 +192,7 @@ export function Dashboard({
           />
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          was the current semester
+          Current semester is {formatYearSemester(selectedYear, selectedSemester)}
         </p>
       </div>
 
@@ -416,4 +416,22 @@ function getSemesterPrefix(year: string, semester: string) {
   };
 
   return `${yearPrefix[year] || year}-${semesterPrefix[semester] || semester}`;
+}
+
+function formatYearSemester(year: string, semester: string) {
+  const yearLabel: Record<string, string> = {
+    'undergrad-freshman': 'Freshman',
+    'undergrad-sophomore': 'Sophomore',
+    'undergrad-junior': 'Junior',
+    'undergrad-senior': 'Senior',
+    'gap-year': 'Gap Year',
+  };
+
+  const semesterLabel: Record<string, string> = {
+    fall: 'Fall',
+    spring: 'Spring',
+    summer: 'Summer',
+  };
+
+  return `${yearLabel[year] || year}, ${semesterLabel[semester] || semester}`;
 }
