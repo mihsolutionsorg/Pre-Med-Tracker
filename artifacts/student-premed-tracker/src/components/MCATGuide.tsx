@@ -291,7 +291,8 @@ export function MCATGuide({
           <div className="mb-6">
             <div className="flex items-end justify-between gap-2 h-64 border-b-2 border-gray-300 pb-2">
               {sortedTests.map((test, index) => {
-                const barHeight = 18 + ((test.score - minChartScore) / (maxChartScore - minChartScore)) * 82;
+                const normalizedScore = (test.score - minChartScore) / (maxChartScore - minChartScore);
+                const barHeight = 24 + normalizedScore * 160;
                 const isImprovement = index > 0 && test.score > sortedTests[index - 1].score;
                 const isDecline = index > 0 && test.score < sortedTests[index - 1].score;
 
@@ -323,7 +324,7 @@ export function MCATGuide({
                               ? 'bg-gradient-to-t from-yellow-500 to-yellow-400'
                               : 'bg-gradient-to-t from-orange-500 to-orange-400'
                           }`}
-                          style={{ height: `${barHeight}%`, minHeight: '40px', maxHeight: '100%' }}
+                          style={{ height: `${barHeight}px`, minHeight: '24px', maxHeight: '190px' }}
                         />
                       </div>
                     </div>
