@@ -385,7 +385,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="rounded-xl">
         <button
           onClick={() => setShowAddCourse(!showAddCourse)}
           className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
@@ -468,7 +468,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
       </div>
 
       {courses.length > 0 && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="rounded-xl">
           <button
             onClick={() => setShowCourseList(!showCourseList)}
             className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
