@@ -291,7 +291,7 @@ export function MCATGuide({
           <div className="mb-6">
             <div className="flex items-end justify-between gap-2 h-64 border-b-2 border-gray-300 pb-2">
               {sortedTests.map((test, index) => {
-                const barHeight = ((test.score - minChartScore) / (maxChartScore - minChartScore)) * 100;
+                const barHeight = 20 + ((test.score - minChartScore) / (maxChartScore - minChartScore)) * 60;
                 const isImprovement = index > 0 && test.score > sortedTests[index - 1].score;
                 const isDecline = index > 0 && test.score < sortedTests[index - 1].score;
 
