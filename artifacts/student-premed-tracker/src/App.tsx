@@ -68,6 +68,8 @@ export default function App() {
   const [practiceTests, setPracticeTests] = useState<PracticeTest[]>([]);
   const [currentView, setCurrentView] = useState('dashboard');
   const [trackInitialTab, setTrackInitialTab] = useState<'gpa' | 'mcat' | 'hours'>('gpa');
+  const [roadmapYear, setRoadmapYear] = useState('undergrad-freshman');
+  const [roadmapSemester, setRoadmapSemester] = useState('fall');
 
   useEffect(() => {
     const savedOnboarding = localStorage.getItem('premed-onboarding-complete');
@@ -89,6 +91,27 @@ export default function App() {
     if (savedCourses) setCourses(JSON.parse(savedCourses));
     if (savedExamPlan) setExamPlan(JSON.parse(savedExamPlan));
     if (savedPracticeTests) setPracticeTests(JSON.parse(savedPracticeTests));
+    const savedTimeframe = localStorage.getItem('premed-roadmap-timeframe');
+    if (savedTimeframe) {
+      try {
+        const parsed = JSON.parse(savedTimeframe);
+        if (parsed.year) setRoadmapYear(parsed.year);
+        if (parsed.semester) setRoadmapSemester(parsed.semester);
+      } catch {
+        localStorage.removeItem('premed-roadmap-timeframe');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleTimeframeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ year?: string; semester?: string }>;
+      if (customEvent.detail?.year) setRoadmapYear(customEvent.detail.year);
+      if (customEvent.detail?.semester) setRoadmapSemester(customEvent.detail.semester);
+    };
+
+    window.addEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
+    return () => window.removeEventListener('premed-roadmap-timeframe-change', handleTimeframeChange as EventListener);
   }, []);
 
   const handleOnboardingComplete = (data: UserProfile) => {
@@ -164,8 +187,11 @@ export default function App() {
         {currentView === 'dashboard' && (
           <Dashboard
             name={userProfile.name}
-            year={userProfile.planYear || userProfile.year}
-            semester={userProfile.planSemester || userProfile.semester}
+            year={userProfile.year}
+            semester={userProfile.semester}
+            planYear={roadmapYear}
+            planSemester={roadmapSemester}
+            roadmapCompletedPriorities={completedPriorities.filter((id) => id.startsWith(getSemesterPrefix(roadmapYear, roadmapSemester)))}
             completedMilestones={completedMilestones}
             completedPriorities={completedPriorities}
             experienceHours={experienceHours}
@@ -179,8 +205,8 @@ export default function App() {
 
         {currentView === 'plan' && (
           <Plan
-            currentYear={userProfile.planYear || userProfile.year}
-            currentSemester={userProfile.planSemester || userProfile.semester}
+            currentYear={roadmapYear}
+            currentSemester={roadmapSemester}
             currentTrack={userProfile.track}
             completedPriorities={completedPriorities}
             onTogglePriority={handleTogglePriority}
@@ -204,8 +230,8 @@ export default function App() {
 
         {currentView === 'focus' && (
           <NextWin
-            currentYear={userProfile.planYear || userProfile.year}
-            currentSemester={userProfile.planSemester || userProfile.semester}
+            currentYear={roadmapYear}
+            currentSemester={roadmapSemester}
             completedPriorities={completedPriorities}
             experienceHours={experienceHours}
             courses={courses}
@@ -221,4 +247,22 @@ export default function App() {
       <BottomNav activeView={currentView} onViewChange={setCurrentView} />
     </div>
   );
+}
+
+function getSemesterPrefix(year: string, semester: string) {
+  const yearPrefix: Record<string, string> = {
+    'undergrad-freshman': 'fr',
+    'undergrad-sophomore': 'so',
+    'undergrad-junior': 'ju',
+    'undergrad-senior': 'se',
+    'gap-year': 'gap',
+  };
+
+  const semesterPrefix: Record<string, string> = {
+    fall: 'f',
+    spring: 's',
+    summer: 'su',
+  };
+
+  return `${yearPrefix[year] || year}-${semesterPrefix[semester] || semester}`;
 }
