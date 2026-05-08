@@ -276,6 +276,11 @@ export function Profile({ userProfile }: ProfileProps) {
             Based on &apos;Med School Bound – The Year-by-Year Roadmap Nobody Gave You&apos;
           </p>
           <p>© 2026 SERH Solutions LLC. All Rights Reserved.</p>
+          <p className="pt-2">
+            <a href="/terms.html" target="_blank" rel="noreferrer" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+              View Full Terms &amp; Conditions
+            </a>
+          </p>
         </div>
       </div>
     </div>
