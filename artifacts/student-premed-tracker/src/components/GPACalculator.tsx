@@ -257,7 +257,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {[
             { tier: 'Top 20 MD', cumulative: '3.85-3.95', science: '3.80-3.92' },
             { tier: 'Top 21-50 MD', cumulative: '3.75-3.85', science: '3.70-3.82' },
@@ -265,23 +265,21 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
             { tier: 'Lower Tier MD', cumulative: '3.50-3.65', science: '3.45-3.60' },
             { tier: 'DO Programs', cumulative: '3.54-3.65', science: '3.48-3.58' },
           ].map((item) => (
-            <div key={item.tier} className="border border-gray-200 rounded-lg p-4 bg-white">
-              <div className="flex items-center justify-between mb-3">
+            <div key={item.tier} className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+              <div className="flex items-start justify-between gap-3 mb-4">
                 <span className="font-semibold text-gray-900">{item.tier}</span>
-                <span className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm font-medium">Below target</span>
+                <span className="bg-red-100 text-red-800 px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap">
+                  Below 0.00
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700">
                 <div>
-                  <div className="text-gray-500">Avg Cumulative</div>
-                  <div className="font-medium text-gray-900">{item.cumulative}</div>
+                  <span className="font-medium text-gray-700">Cumulative:</span>{' '}
+                  <span className="text-gray-900">{item.cumulative}</span>
                 </div>
                 <div>
-                  <div className="text-gray-500">Avg Science</div>
-                  <div className="font-medium text-gray-900">{item.science}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Your Status</div>
-                  <div className="font-medium text-gray-900">Compare your GPA above</div>
+                  <span className="font-medium text-gray-700">Science:</span>{' '}
+                  <span className="text-gray-900">{item.science}</span>
                 </div>
               </div>
             </div>
