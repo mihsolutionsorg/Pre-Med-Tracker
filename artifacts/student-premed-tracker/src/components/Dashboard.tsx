@@ -161,7 +161,6 @@ export function Dashboard({
 
   const overallReadiness = getSemesterFocus(year, semester);
   const applicationReadiness = calculateApplicationReadiness();
-  const semesterFocus = getSemesterFocus(year, semester);
 
   return (
     <div className="space-y-6">
