@@ -1,4 +1,4 @@
-import { Heart, TrendingUp, Clock, Target } from 'lucide-react';
+import { Heart, TrendingUp, Clock, Target, BadgeCheck } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -172,7 +172,7 @@ export function Dashboard({
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-xl">
         <div className="flex items-center gap-2 mb-2">
-          <Heart className="fill-white" size={24} />
+          <BadgeCheck size={24} />
           <h2 className="text-2xl font-bold">Welcome, {name}!</h2>
         </div>
         <p className="text-blue-100">
