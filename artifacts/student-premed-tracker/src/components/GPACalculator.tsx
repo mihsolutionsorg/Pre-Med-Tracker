@@ -254,7 +254,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
 
       {/* Detailed Trend Analysis */}
       {trendIndicator && courses.length >= 3 && (
-        <div className={`rounded-xl shadow-md p-5 border-2 ${trendIndicator.bgColor}`}>
+        <div className={`p-5 border-2 ${trendIndicator.bgColor}`}>
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className={trendIndicator.color} size={24} />
             <h3 className="text-lg font-semibold text-gray-900">GPA Trend Analysis</h3>
@@ -346,7 +346,7 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300 rounded-xl p-5">
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300 p-5">
                 <div className="text-center mb-3">
                   <div className="text-sm text-purple-700 font-medium mb-1">Projected Cumulative GPA</div>
                   <div className="text-4xl font-bold text-purple-900">{projectedGPA.toFixed(2)}</div>
