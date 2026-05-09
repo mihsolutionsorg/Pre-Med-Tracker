@@ -187,7 +187,7 @@ export function Dashboard({
 
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Application Readiness</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Term Readiness</h3>
           <span className="text-sm text-gray-600">Selected term: {formatYearSemester(selectedYear, selectedSemester)}</span>
         </div>
         <div className="flex items-center justify-center">
