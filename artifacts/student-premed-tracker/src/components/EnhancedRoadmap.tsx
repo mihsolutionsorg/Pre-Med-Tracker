@@ -323,13 +323,7 @@ export function EnhancedRoadmap({
                     return (
                       <button
                         key={priority.id}
-                        onClick={() => {
-                          const updated = isCompleted
-                            ? localCompletedPriorities.filter((id) => id !== priority.id)
-                            : [...localCompletedPriorities, priority.id];
-                          setLocalCompletedPriorities(updated);
-                          onUpdateCompletedPriorities(updated);
-                        }}
+                        onClick={() => onTogglePriority(priority.id)}
                         className={`w-full flex items-start gap-3 p-3 rounded-lg border transition-all text-left ${
                           isCompleted
                             ? 'bg-green-50 border-green-300'

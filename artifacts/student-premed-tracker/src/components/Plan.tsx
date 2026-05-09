@@ -58,7 +58,7 @@ export function Plan({
           currentTrack={currentTrack}
           completedPriorities={completedPriorities}
           onTogglePriority={onTogglePriority}
-        onUpdateCompletedPriorities={onUpdateCompletedPriorities}
+          onUpdateCompletedPriorities={onUpdateCompletedPriorities}
         />
       )}
 
