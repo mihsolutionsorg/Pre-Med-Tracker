@@ -5,6 +5,7 @@ interface SelfAssessmentProps {
   currentYear: string;
   currentSemester: string;
   completedPriorities: string[];
+  onUpdateCompletedPriorities: (ids: string[]) => void;
 }
 
 interface Priority {
@@ -143,7 +144,7 @@ const semesterPriorities: Record<string, Record<string, Priority[]>> = {
   },
 };
 
-export function SelfAssessment({ currentYear, currentSemester, completedPriorities }: SelfAssessmentProps) {
+export function SelfAssessment({ currentYear, currentSemester, completedPriorities, onUpdateCompletedPriorities }: SelfAssessmentProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -196,6 +197,11 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
   };
 
   const handleSubmit = () => {
+    const updatedCompletedPriorities = priorities
+      .filter((priority) => answers[priority.id] === true)
+      .map((priority) => priority.id);
+
+    onUpdateCompletedPriorities(updatedCompletedPriorities);
     setHasSubmitted(true);
   };
 
@@ -206,6 +212,7 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
       initialAnswers[priority.id] = completedPriorities.includes(priority.id);
     });
     setAnswers(initialAnswers);
+    onUpdateCompletedPriorities(completedPriorities);
     setHasSubmitted(false);
   };
 

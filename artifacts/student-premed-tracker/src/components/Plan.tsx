@@ -9,6 +9,7 @@ interface PlanProps {
   currentTrack: string;
   completedPriorities: string[];
   onTogglePriority: (id: string) => void;
+  onUpdateCompletedPriorities: (ids: string[]) => void;
 }
 
 export function Plan({
@@ -17,6 +18,7 @@ export function Plan({
   currentTrack,
   completedPriorities,
   onTogglePriority,
+  onUpdateCompletedPriorities,
 }: PlanProps) {
   const [activeTab, setActiveTab] = useState<'roadmap' | 'check-in'>('roadmap');
 
@@ -64,6 +66,7 @@ export function Plan({
           currentYear={currentYear}
           currentSemester={currentSemester}
           completedPriorities={completedPriorities}
+          onUpdateCompletedPriorities={onUpdateCompletedPriorities}
         />
       )}
     </div>

@@ -144,6 +144,11 @@ export default function App() {
     localStorage.setItem('premed-priorities', JSON.stringify(updated));
   };
 
+  const handleUpdateCompletedPriorities = (ids: string[]) => {
+    setCompletedPriorities(ids);
+    localStorage.setItem('premed-priorities', JSON.stringify(ids));
+  };
+
   const handleUpdateHours = (type: string, value: number) => {
     const updated = { ...experienceHours, [type]: value };
     setExperienceHours(updated);
@@ -210,6 +215,7 @@ export default function App() {
             currentTrack={userProfile.track}
             completedPriorities={completedPriorities}
             onTogglePriority={handleTogglePriority}
+            onUpdateCompletedPriorities={handleUpdateCompletedPriorities}
           />
         )}
 
