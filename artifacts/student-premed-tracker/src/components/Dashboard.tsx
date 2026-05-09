@@ -1,4 +1,5 @@
 import { Heart, TrendingUp, Clock, Target, BadgeCheck } from 'lucide-react';
+import { PieChart, Pie, Cell } from 'recharts';
 
 interface Course {
   id: string;
@@ -167,6 +168,10 @@ export function Dashboard({
   const applicationReadiness = calculateApplicationReadiness();
   const semesterFocus = getSemesterFocusList(selectedYear, selectedSemester);
   const semesterOnlyCompletedPriorities = roadmapCompletedPriorities || completedPriorities.filter((id) => id.startsWith(getSemesterPrefix(selectedYear, selectedSemester)));
+  const readinessData = [
+    { name: 'Completed', value: applicationReadiness },
+    { name: 'Remaining', value: 100 - applicationReadiness },
+  ];
 
   return (
     <div className="space-y-6">
@@ -182,18 +187,31 @@ export function Dashboard({
 
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Overall Readiness</h3>
-          <span className="text-2xl font-bold text-blue-600">{overallReadiness}%</span>
+          <h3 className="text-lg font-semibold text-gray-900">Application Readiness</h3>
+          <span className="text-sm text-gray-600">Selected term: {formatYearSemester(selectedYear, selectedSemester)}</span>
         </div>
-        <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
-          <div
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500"
-            style={{ width: `${overallReadiness}%` }}
-          />
+        <div className="flex items-center justify-center">
+          <div className="relative h-28 w-28">
+            <PieChart width={112} height={112}>
+              <Pie
+                data={readinessData}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={38}
+                outerRadius={52}
+                startAngle={90}
+                endAngle={-270}
+                stroke="none"
+              >
+                <Cell fill="#2563eb" />
+                <Cell fill="#e5e7eb" />
+              </Pie>
+            </PieChart>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-bold text-gray-900">{applicationReadiness}%</span>
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-gray-600 mt-2">
-          Selected term: {formatYearSemester(selectedYear, selectedSemester)}
-        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
