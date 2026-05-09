@@ -7,6 +7,7 @@ interface EnhancedRoadmapProps {
   currentTrack: string;
   completedPriorities: string[];
   onTogglePriority: (id: string) => void;
+  onUpdateCompletedPriorities: (ids: string[]) => void;
 }
 
 interface Priority {
@@ -151,6 +152,7 @@ export function EnhancedRoadmap({
   currentTrack,
   completedPriorities,
   onTogglePriority,
+  onUpdateCompletedPriorities,
 }: EnhancedRoadmapProps) {
   const storageKey = 'premed-roadmap-timeframe';
   const completedKey = `premed-roadmap-completed-${currentYear}-${currentSemester}`;
@@ -310,9 +312,9 @@ export function EnhancedRoadmap({
                 <div className="flex items-center gap-2 mb-4">
                   <Icon className={color} size={22} />
                   <h3 className="font-semibold text-gray-900">{category}</h3>
-                  <span className="ml-auto text-sm text-gray-500">
-                    {categoryPriorities.filter(p => completedPriorities.includes(p.id)).length} / {categoryPriorities.length}
-                  </span>
+                    <span className="ml-auto text-sm text-gray-500">
+                      {categoryPriorities.filter(p => localCompletedPriorities.includes(p.id)).length} / {categoryPriorities.length}
+                    </span>
                 </div>
                 <div className="space-y-2">
                   {categoryPriorities.map((priority) => {
@@ -326,7 +328,7 @@ export function EnhancedRoadmap({
                             ? localCompletedPriorities.filter((id) => id !== priority.id)
                             : [...localCompletedPriorities, priority.id];
                           setLocalCompletedPriorities(updated);
-                          onTogglePriority(priority.id);
+                          onUpdateCompletedPriorities(updated);
                         }}
                         className={`w-full flex items-start gap-3 p-3 rounded-lg border transition-all text-left ${
                           isCompleted
