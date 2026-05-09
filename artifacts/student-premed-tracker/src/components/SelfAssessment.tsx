@@ -198,24 +198,25 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
   };
 
   const handleSubmit = () => {
-    const updatedCompletedPriorities = priorities
+    const currentTermIds = priorities.map(p => p.id);
+    const checkedIds = priorities
       .filter((priority) => answers[priority.id] === true)
       .map((priority) => priority.id);
 
-    onUpdateCompletedPriorities(updatedCompletedPriorities);
-    localStorage.setItem(completedKey, JSON.stringify(updatedCompletedPriorities));
+    // Preserve completed items from other terms; replace only this term's items
+    const otherTermsCompleted = completedPriorities.filter(id => !currentTermIds.includes(id));
+    const merged = [...otherTermsCompleted, ...checkedIds];
+
+    onUpdateCompletedPriorities(merged);
     setHasSubmitted(true);
   };
 
   const handleCancel = () => {
-    // Reset to initial state
     const initialAnswers: Record<string, boolean> = {};
     priorities.forEach(priority => {
       initialAnswers[priority.id] = completedPriorities.includes(priority.id);
     });
     setAnswers(initialAnswers);
-    onUpdateCompletedPriorities(completedPriorities);
-    localStorage.setItem(completedKey, JSON.stringify(completedPriorities));
     setHasSubmitted(false);
   };
 

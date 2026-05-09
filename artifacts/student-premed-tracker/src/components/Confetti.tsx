@@ -15,24 +15,24 @@ export function Confetti({ show, onComplete }: ConfettiProps) {
   }>>([]);
 
   useEffect(() => {
-    if (show) {
-      const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
-      const newParticles = Array.from({ length: 30 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        delay: Math.random() * 0.3,
-        duration: 2 + Math.random() * 1,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      }));
-      setParticles(newParticles);
+    if (!show) return;
 
-      const timer = setTimeout(() => {
-        setParticles([]);
-        onComplete?.();
-      }, 3000);
+    const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+    const newParticles = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.3,
+      duration: 2 + Math.random() * 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+    setParticles(newParticles);
 
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setParticles([]);
+      onComplete?.();
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [show, onComplete]);
 
   if (!show || particles.length === 0) return null;

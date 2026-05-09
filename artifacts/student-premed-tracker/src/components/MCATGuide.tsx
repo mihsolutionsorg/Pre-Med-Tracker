@@ -158,7 +158,7 @@ export function MCATGuide({
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSaveTest}
-                  disabled={!newTest.date || newTest.score < 472 || newTest.score > 528}
+                  disabled={!newTest.date || Number(newTest.score) < 472 || Number(newTest.score) > 528}
                   className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white py-2 px-4 rounded-lg font-semibold"
                 >
                   Save
