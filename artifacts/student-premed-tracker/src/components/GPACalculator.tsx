@@ -217,15 +217,6 @@ export function GPACalculator({ courses, onUpdateCourses }: GPACalculatorProps) 
         </div>
 
         {/* Trend Indicator */}
-        {trendIndicator && (
-          <div className="mb-4 flex items-center justify-center gap-2 px-4 py-2 bg-white bg-opacity-20 rounded-lg">
-            <span className="text-white text-sm font-medium">Trend:</span>
-            <span className="text-white text-lg font-bold">
-              {trendIndicator.icon} {trendIndicator.text}
-            </span>
-          </div>
-        )}
-
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-green-400">
           <div>
