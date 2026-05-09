@@ -329,6 +329,7 @@ export function EnhancedRoadmap({
                             : [...localCompletedPriorities, priority.id];
                           setLocalCompletedPriorities(updated);
                           onUpdateCompletedPriorities(updated);
+                          onTogglePriority(priority.id);
                         }}
                         className={`w-full flex items-start gap-3 p-3 rounded-lg border transition-all text-left ${
                           isCompleted
