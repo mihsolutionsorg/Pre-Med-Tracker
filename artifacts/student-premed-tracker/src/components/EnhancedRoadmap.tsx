@@ -153,8 +153,10 @@ export function EnhancedRoadmap({
   onTogglePriority,
 }: EnhancedRoadmapProps) {
   const storageKey = 'premed-roadmap-timeframe';
+  const completedKey = `premed-roadmap-completed-${currentYear}-${currentSemester}`;
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedSemester, setSelectedSemester] = useState(currentSemester);
+  const [localCompletedPriorities, setLocalCompletedPriorities] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -169,8 +171,27 @@ export function EnhancedRoadmap({
   }, []);
 
   useEffect(() => {
+    const savedCompleted = localStorage.getItem(completedKey);
+    if (!savedCompleted) {
+      setLocalCompletedPriorities(completedPriorities);
+      return;
+    }
+
+    try {
+      setLocalCompletedPriorities(JSON.parse(savedCompleted));
+    } catch {
+      localStorage.removeItem(completedKey);
+      setLocalCompletedPriorities(completedPriorities);
+    }
+  }, [completedKey, completedPriorities]);
+
+  useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify({ year: selectedYear, semester: selectedSemester }));
   }, [selectedYear, selectedSemester]);
+
+  useEffect(() => {
+    localStorage.setItem(completedKey, JSON.stringify(localCompletedPriorities));
+  }, [completedKey, localCompletedPriorities]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('premed-roadmap-timeframe-change', {
@@ -179,7 +200,7 @@ export function EnhancedRoadmap({
   }, [selectedYear, selectedSemester]);
 
   const priorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
-  const completedCount = priorities.filter(p => completedPriorities.includes(p.id)).length;
+  const completedCount = priorities.filter(p => localCompletedPriorities.includes(p.id)).length;
 
   const categories = Array.from(new Set(priorities.map(p => p.category)));
 
@@ -295,12 +316,18 @@ export function EnhancedRoadmap({
                 </div>
                 <div className="space-y-2">
                   {categoryPriorities.map((priority) => {
-                    const isCompleted = completedPriorities.includes(priority.id);
+                    const isCompleted = localCompletedPriorities.includes(priority.id);
 
                     return (
                       <button
                         key={priority.id}
-                        onClick={() => onTogglePriority(priority.id)}
+                        onClick={() => {
+                          const updated = isCompleted
+                            ? localCompletedPriorities.filter((id) => id !== priority.id)
+                            : [...localCompletedPriorities, priority.id];
+                          setLocalCompletedPriorities(updated);
+                          onTogglePriority(priority.id);
+                        }}
                         className={`w-full flex items-start gap-3 p-3 rounded-lg border transition-all text-left ${
                           isCompleted
                             ? 'bg-green-50 border-green-300'

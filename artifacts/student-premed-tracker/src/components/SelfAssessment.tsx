@@ -182,6 +182,7 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
   }, [currentYear, currentSemester]);
 
   const priorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
+  const completedKey = `premed-roadmap-completed-${selectedYear}-${selectedSemester}`;
 
   // Initialize answers based on completed priorities
   useEffect(() => {
@@ -202,6 +203,7 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
       .map((priority) => priority.id);
 
     onUpdateCompletedPriorities(updatedCompletedPriorities);
+    localStorage.setItem(completedKey, JSON.stringify(updatedCompletedPriorities));
     setHasSubmitted(true);
   };
 
@@ -213,6 +215,7 @@ export function SelfAssessment({ currentYear, currentSemester, completedPrioriti
     });
     setAnswers(initialAnswers);
     onUpdateCompletedPriorities(completedPriorities);
+    localStorage.setItem(completedKey, JSON.stringify(completedPriorities));
     setHasSubmitted(false);
   };
 
