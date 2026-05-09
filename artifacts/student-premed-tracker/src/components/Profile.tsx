@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User, Trash2, Info, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface ProfileProps {
   userProfile: {
@@ -171,11 +172,24 @@ export function Profile({ userProfile }: ProfileProps) {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl">
-        <div className="flex items-center gap-2 mb-2">
-          <User size={28} />
-          <h2 className="text-2xl font-bold">Profile</h2>
+        <div className="flex items-center gap-3 mb-2">
+          <Avatar className="size-12 border border-white/30 bg-white/10">
+            <AvatarImage
+              src={`data:image/svg+xml;utf8,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+                  <rect width="96" height="96" rx="48" fill="#FFFFFF"/>
+                  <circle cx="48" cy="38" r="16" fill="#C084FC"/>
+                  <path d="M22 78c5-14 18-22 26-22s21 8 26 22" fill="#A855F7"/>
+                </svg>
+              `)}`}
+            />
+            <AvatarFallback className="bg-white/10 text-white">PM</AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-2xl font-bold">Profile</h2>
+            <p className="text-purple-100">Manage your account and data</p>
+          </div>
         </div>
-        <p className="text-purple-100">Manage your account and data</p>
       </div>
 
       {/* Profile Info */}
