@@ -25,7 +25,7 @@ const SPLASH_SCREENS = [
   {
     icon: ClipboardList,
     headline: 'Your Pre-Med Journey, Organized.',
-    sub: 'Milestones, GPA, MCAT, and hours — all in one focused app built for pre-med students.',
+    sub: 'No more guessing what comes next. A personalized roadmap from Freshman year to White Coat.',
   },
   {
     icon: Target,
