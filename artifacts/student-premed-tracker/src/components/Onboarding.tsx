@@ -30,7 +30,7 @@ const SPLASH_SCREENS = [
   {
     icon: Target,
     headline: 'Track Every Milestone.',
-    sub: 'From Freshman Fall to your med school application. Your personalized roadmap, updated in real time.',
+    sub: 'Log clinical hours, shadow shifts, and GPA trends in one secure place.',
   },
   {
     icon: BadgeCheck,
