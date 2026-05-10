@@ -128,15 +128,39 @@ export function MCATGuide({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Score (472-528)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Score (472–528)</label>
                 <input
                   type="number"
                   value={newTest.score}
-                  onChange={(e) => setNewTest({ ...newTest, score: e.target.value })}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === '' || raw === '-') {
+                      setNewTest({ ...newTest, score: raw });
+                      return;
+                    }
+                    const num = Number(raw);
+                    if (num > 528) setNewTest({ ...newTest, score: '528' });
+                    else if (num < 472 && raw.length >= 3) setNewTest({ ...newTest, score: '472' });
+                    else setNewTest({ ...newTest, score: raw });
+                  }}
+                  onBlur={(e) => {
+                    const num = Number(e.target.value);
+                    if (!e.target.value || isNaN(num)) return;
+                    if (num < 472) setNewTest({ ...newTest, score: '472' });
+                    else if (num > 528) setNewTest({ ...newTest, score: '528' });
+                  }}
                   min="472"
                   max="528"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="e.g. 510"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none ${
+                    newTest.score !== '' && (Number(newTest.score) < 472 || Number(newTest.score) > 528)
+                      ? 'border-red-400 focus:border-red-500 bg-red-50'
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
                 />
+                {newTest.score !== '' && (Number(newTest.score) < 472 || Number(newTest.score) > 528) && (
+                  <p className="text-xs text-red-500 mt-1">Score must be between 472 and 528.</p>
+                )}
               </div>
 
               <div>
