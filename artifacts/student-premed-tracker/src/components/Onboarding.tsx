@@ -149,15 +149,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 flex flex-col px-6 py-10">
-        {/* Skip */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={handleSkip}
-            className="text-blue-200 hover:text-white text-sm font-medium transition-colors px-2 py-1"
-          >
-            Skip for now
-          </button>
-        </div>
+        {/* Top spacer keeps content vertically centred */}
+        <div className="h-6" />
 
         {/* Content */}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-2">
@@ -180,7 +173,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         {/* Dot indicators */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-6">
           {SPLASH_SCREENS.map((_, i) => (
             <div
               key={i}
@@ -191,7 +184,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           ))}
         </div>
 
-        {/* CTA */}
+        {/* Buttons row — Skip (left) + Next/CTA (right) */}
         {isLast ? (
           <button
             onClick={handleSplashNext}
@@ -201,14 +194,27 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <ArrowRight size={20} />
           </button>
         ) : (
-          <button
-            onClick={handleSplashNext}
-            className="w-full bg-white/20 hover:bg-white/30 text-white font-semibold text-base py-4 rounded-2xl transition-colors flex items-center justify-center gap-2"
-          >
-            Next
-            <ChevronRight size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSkip}
+              className="flex-none px-5 py-4 text-white/80 hover:text-white font-semibold text-base underline underline-offset-2 transition-colors"
+            >
+              Skip
+            </button>
+            <button
+              onClick={handleSplashNext}
+              className="flex-1 bg-white/20 hover:bg-white/30 text-white font-semibold text-base py-4 rounded-2xl transition-colors flex items-center justify-center gap-2"
+            >
+              Next
+              <ChevronRight size={20} />
+            </button>
+          </div>
         )}
+
+        {/* Footer */}
+        <p className="text-center text-white/50 text-xs mt-4">
+          SERH Solutions LLC &nbsp;©&nbsp; 2026
+        </p>
       </div>
     );
   }
