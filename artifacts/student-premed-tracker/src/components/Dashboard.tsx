@@ -1,5 +1,6 @@
-import { TrendingUp, Target, BadgeCheck, BookOpen, Info } from 'lucide-react';
-import { PieChart, Pie, Cell } from 'recharts';
+import { useState } from 'react';
+import { Target, BadgeCheck, BookOpen, Info, Check, HelpCircle } from 'lucide-react';
+import { semesterPriorities, ALL_PRIORITY_IDS } from '../data/semesterPriorities';
 
 interface Course {
   id: string;
@@ -36,50 +37,15 @@ interface DashboardProps {
   onUpdateHours: (type: string, value: number) => void;
   onViewChange: (view: string) => void;
   onNavigateToTrack: (tab: 'gpa' | 'mcat' | 'hours') => void;
+  onTogglePriority: (id: string) => void;
 }
 
 const gradePoints: Record<string, number> = {
-  'A+': 4.0,
-  'A': 4.0,
-  'A-': 3.7,
-  'B+': 3.3,
-  'B': 3.0,
-  'B-': 2.7,
-  'C+': 2.3,
-  'C': 2.0,
-  'C-': 1.7,
-  'D+': 1.3,
-  'D': 1.0,
-  'D-': 0.7,
+  'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+  'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+  'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+  'D+': 1.3, 'D': 1.0, 'D-': 0.7,
   'F': 0.0,
-};
-
-const semesterPriorities: Record<string, Record<string, { id: string }[]>> = {
-  'undergrad-freshman': {
-    fall: Array.from({ length: 11 }, (_, i) => ({ id: `fr-f-${i + 1}` })),
-    spring: Array.from({ length: 7 }, (_, i) => ({ id: `fr-s-${i + 1}` })),
-    summer: Array.from({ length: 3 }, (_, i) => ({ id: `fr-su-${i + 1}` })),
-  },
-  'undergrad-sophomore': {
-    fall: Array.from({ length: 8 }, (_, i) => ({ id: `so-f-${i + 1}` })),
-    spring: Array.from({ length: 9 }, (_, i) => ({ id: `so-s-${i + 1}` })),
-    summer: Array.from({ length: 3 }, (_, i) => ({ id: `so-su-${i + 1}` })),
-  },
-  'undergrad-junior': {
-    fall: Array.from({ length: 11 }, (_, i) => ({ id: `ju-f-${i + 1}` })),
-    spring: Array.from({ length: 11 }, (_, i) => ({ id: `ju-s-${i + 1}` })),
-    summer: Array.from({ length: 3 }, (_, i) => ({ id: `ju-su-${i + 1}` })),
-  },
-  'undergrad-senior': {
-    fall: Array.from({ length: 7 }, (_, i) => ({ id: `se-f-${i + 1}` })),
-    spring: Array.from({ length: 3 }, (_, i) => ({ id: `se-s-${i + 1}` })),
-    summer: [],
-  },
-  'gap-year': {
-    fall: Array.from({ length: 5 }, (_, i) => ({ id: `gap-f-${i + 1}` })),
-    spring: Array.from({ length: 4 }, (_, i) => ({ id: `gap-s-${i + 1}` })),
-    summer: Array.from({ length: 2 }, (_, i) => ({ id: `gap-su-${i + 1}` })),
-  },
 };
 
 export function Dashboard({
@@ -88,8 +54,7 @@ export function Dashboard({
   semester,
   planYear,
   planSemester,
-  roadmapCompletedPriorities,
-  completedMilestones,
+  completedMilestones: _completedMilestones,
   completedPriorities,
   experienceHours,
   courses,
@@ -97,7 +62,11 @@ export function Dashboard({
   onUpdateHours,
   onViewChange,
   onNavigateToTrack,
+  onTogglePriority,
 }: DashboardProps) {
+  const [showReadinessTooltip, setShowReadinessTooltip] = useState(false);
+  const [showAppTooltip, setShowAppTooltip] = useState(false);
+
   const formatTargetDate = (value: string) => {
     if (!value) return 'TBD';
     const parsed = new Date(value);
@@ -108,8 +77,7 @@ export function Dashboard({
   const calculateGPA = (courseList: Course[]) => {
     if (courseList.length === 0) return 0;
     const totalPoints = courseList.reduce(
-      (sum, course) => sum + gradePoints[course.grade] * course.credits,
-      0
+      (sum, course) => sum + gradePoints[course.grade] * course.credits, 0
     );
     const totalCredits = courseList.reduce((sum, course) => sum + course.credits, 0);
     return totalCredits > 0 ? totalPoints / totalCredits : 0;
@@ -117,42 +85,20 @@ export function Dashboard({
 
   const currentGPA = calculateGPA(courses);
 
-  const calculateApplicationReadiness = () => {
-    const yearOrder = ['undergrad-freshman', 'undergrad-sophomore', 'undergrad-junior', 'undergrad-senior', 'gap-year'];
-    const semesterOrder = ['fall', 'spring', 'summer'];
-    const roadmapIds: string[] = [];
-
-    for (const yearKey of yearOrder) {
-      const yearData = semesterPriorities[yearKey];
-      if (!yearData) continue;
-      for (const semesterKey of semesterOrder) {
-        const priorities = yearData[semesterKey] || [];
-        roadmapIds.push(...priorities.map((p) => p.id));
-      }
-    }
-
-    if (roadmapIds.length === 0) return 0;
-    const completedCount = roadmapIds.filter((id) => completedPriorities.includes(id)).length;
-    return Math.round((completedCount / roadmapIds.length) * 100);
-  };
-
   const selectedYear = planYear || year;
   const selectedSemester = planSemester || semester;
-  const semesterPrioritiesList = semesterPriorities[selectedYear]?.[selectedSemester] || [];
-  const selectedSemesterCompleted = semesterPrioritiesList.filter((p) =>
-    completedPriorities.includes(p.id)
-  ).length;
-  const overallReadiness = semesterPrioritiesList.length > 0
-    ? Math.round((selectedSemesterCompleted / semesterPrioritiesList.length) * 100)
+
+  // Current term priorities — the exact same list used in the Plan/Roadmap tab
+  const termPriorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
+  const termCompleted = termPriorities.filter(p => completedPriorities.includes(p.id)).length;
+  const termTotal = termPriorities.length;
+
+  // Application readiness = % of ALL priorities across all years ever completed
+  const totalAllPriorities = ALL_PRIORITY_IDS.length;
+  const completedAllCount = ALL_PRIORITY_IDS.filter(id => completedPriorities.includes(id)).length;
+  const applicationReadiness = totalAllPriorities > 0
+    ? Math.round((completedAllCount / totalAllPriorities) * 100)
     : 0;
-
-  const applicationReadiness = calculateApplicationReadiness();
-  const semesterFocus = getSemesterFocusList(selectedYear, selectedSemester);
-
-  const readinessData = [
-    { name: 'Completed', value: overallReadiness },
-    { name: 'Remaining', value: 100 - overallReadiness },
-  ];
 
   const totalHours =
     experienceHours.clinical +
@@ -162,13 +108,21 @@ export function Dashboard({
 
   const isTermActive = selectedYear === year && selectedSemester === semester;
 
-  // Determine pro tip
   const getProTip = () => {
     if (totalHours === 0) return 'Start logging clinical hours early to build a strong application profile';
     if (experienceHours.clinical < 50) return 'Aim for at least 200 clinical hours before applying to medical school';
     if (experienceHours.shadowing < 40) return 'Shadow at least 2 specialties — admissions committees want breadth and depth';
     return 'Keep logging — consistency in clinical experience strengthens your narrative';
   };
+
+  const yearLabel: Record<string, string> = {
+    'undergrad-freshman': 'Freshman',
+    'undergrad-sophomore': 'Sophomore',
+    'undergrad-junior': 'Junior',
+    'undergrad-senior': 'Senior',
+    'gap-year': 'Gap Year',
+  };
+  const semesterLabel: Record<string, string> = { fall: 'Fall', spring: 'Spring', summer: 'Summer' };
 
   return (
     <div className="space-y-4">
@@ -183,14 +137,26 @@ export function Dashboard({
         </p>
       </div>
 
-      {/* Term Readiness */}
+      {/* Term Readiness — Checklist Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h3 className="text-base font-semibold text-gray-900">Term Readiness</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Selected term: <span className="font-medium text-gray-700">{formatYearSemester(selectedYear, selectedSemester)}</span>
-            </p>
+        {/* Header */}
+        <div className="flex items-start justify-between mb-1">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-base font-bold text-gray-900">Term Readiness</h3>
+            <div className="relative">
+              <button
+                onClick={() => setShowReadinessTooltip(v => !v)}
+                onBlur={() => setShowReadinessTooltip(false)}
+                className="text-gray-300 hover:text-gray-500 transition-colors focus:outline-none"
+              >
+                <HelpCircle size={15} />
+              </button>
+              {showReadinessTooltip && (
+                <div className="absolute left-0 top-6 z-10 w-56 bg-gray-900 text-white text-xs rounded-lg p-2.5 shadow-lg leading-relaxed">
+                  This tracks your progress for your current semester milestones. Check off tasks as you complete them — they sync with your Plan tab.
+                </div>
+              )}
+            </div>
           </div>
           {isTermActive && (
             <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
@@ -199,48 +165,57 @@ export function Dashboard({
           )}
         </div>
 
-        <div className="flex items-center justify-center pt-1 pb-3">
-          <div className="relative h-28 w-28">
-            <PieChart width={112} height={112}>
-              <Pie
-                data={readinessData}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={38}
-                outerRadius={52}
-                startAngle={90}
-                endAngle={-270}
-                stroke="none"
-              >
-                <Cell fill="#2563eb" />
-                <Cell fill="#e5e7eb" />
-              </Pie>
-            </PieChart>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">{overallReadiness}%</span>
-              <span className="text-xs text-gray-500">Complete</span>
-            </div>
-          </div>
+        <p className="text-xs text-gray-500 mb-3">
+          Your {yearLabel[selectedYear] || selectedYear} {semesterLabel[selectedSemester] || selectedSemester} Roadmap
+        </p>
+
+        {/* Fraction count — bold, prominent */}
+        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-center">
+          <span className="text-2xl font-extrabold text-gray-900">
+            {termCompleted} of {termTotal} task{termTotal !== 1 ? 's' : ''} complete
+          </span>
         </div>
 
-        {overallReadiness === 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg p-3.5 mt-1">
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-                <TrendingUp size={15} className="text-white" />
-              </div>
-              <span className="font-semibold text-gray-800 text-sm">Ready to begin?</span>
-            </div>
-            <p className="text-xs text-gray-600 mb-3 ml-9">
-              Add your courses and set goals to start tracking your progress
-            </p>
-            <button
-              onClick={() => onNavigateToTrack('gpa')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
-            >
-              + Get Started
-            </button>
-          </div>
+        {/* Checklist — same items as Plan tab */}
+        {termPriorities.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-2">No priorities for this semester.</p>
+        ) : (
+          <ul className="space-y-2">
+            {termPriorities.map((priority) => {
+              const isCompleted = completedPriorities.includes(priority.id);
+              return (
+                <li key={priority.id}>
+                  <button
+                    onClick={() => onTogglePriority(priority.id)}
+                    className={`w-full flex items-start gap-3 p-2.5 rounded-lg transition-all text-left ${
+                      isCompleted ? 'opacity-60' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${
+                      isCompleted ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                    }`}>
+                      {isCompleted && <Check size={11} className="text-white" strokeWidth={3} />}
+                    </div>
+                    <span className={`text-sm leading-snug flex-1 ${
+                      isCompleted ? 'text-gray-500 line-through' : 'text-gray-800'
+                    }`}>
+                      {priority.text}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {/* "See full plan" link */}
+        {termPriorities.length > 0 && (
+          <button
+            onClick={() => onViewChange('plan')}
+            className="w-full mt-3 text-xs text-blue-500 hover:text-blue-700 font-medium text-center py-1 transition-colors"
+          >
+            See full roadmap in Plan tab →
+          </button>
         )}
       </div>
 
@@ -250,16 +225,12 @@ export function Dashboard({
           onClick={() => onNavigateToTrack('gpa')}
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md transition-shadow"
         >
-          <div className="text-xs text-gray-500 mb-1">Current GPA</div>
+          <div className="text-xs text-gray-500 mb-1 font-medium">Current GPA</div>
           <div className="text-2xl font-bold text-gray-900">
             {courses.length > 0 ? currentGPA.toFixed(2) : 'Not Set'}
           </div>
-          <div className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-            {courses.length > 0 ? `${courses.length} courses` : (
-              <>
-                <span className="text-blue-500">+</span> Add courses
-              </>
-            )}
+          <div className="text-xs text-gray-400 mt-1.5">
+            {courses.length > 0 ? `${courses.length} courses` : '+ Add courses'}
           </div>
         </button>
 
@@ -267,42 +238,54 @@ export function Dashboard({
           onClick={() => onNavigateToTrack('mcat')}
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md transition-shadow"
         >
-          <div className="text-xs text-gray-500 mb-1">MCAT Goal</div>
+          <div className="text-xs text-gray-500 mb-1 font-medium">MCAT Goal</div>
           <div className="text-2xl font-bold text-gray-900">
             {examPlan.targetScore > 0 ? examPlan.targetScore : 'Not Set'}
           </div>
-          <div className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-            {examPlan.targetScore > 0 ? `Target: ${formatTargetDate(examPlan.targetDate)}` : (
-              <>
-                <span className="text-blue-500">⊙</span> Set goal
-              </>
-            )}
+          <div className="text-xs text-gray-400 mt-1.5">
+            {examPlan.targetScore > 0 ? `Target: ${formatTargetDate(examPlan.targetDate)}` : '⊙ Set goal'}
           </div>
         </button>
       </div>
 
-      {/* Combined Total Experience + Application Readiness */}
+      {/* Total Experience + Application Readiness */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <h3 className="text-base font-semibold text-gray-900">Total Experience</h3>
-            <p className="text-2xl font-bold text-gray-900 mt-0.5">{totalHours}h</p>
-            <p className="text-xs text-gray-400 mt-0.5">Clinical + Research + Service</p>
-          </div>
+        <div className="flex items-start justify-between mb-1">
+          <h3 className="text-base font-bold text-gray-900">Total Experience</h3>
           <button
             onClick={() => onNavigateToTrack('hours')}
-            className="text-gray-300 hover:text-gray-500 transition-colors mt-0.5"
+            className="text-gray-300 hover:text-gray-500 transition-colors"
             title="Log hours"
           >
-            <BookOpen size={20} />
+            <BookOpen size={18} />
           </button>
         </div>
+        <p className="text-3xl font-extrabold text-gray-900 mb-0.5">{totalHours}h</p>
+        <p className="text-xs text-gray-400 mb-4">
+          Clinical <span className="font-medium text-gray-600">{experienceHours.clinical}h</span>
+          {' · '}Research <span className="font-medium text-gray-600">{experienceHours.research}h</span>
+          {' · '}Service <span className="font-medium text-gray-600">{experienceHours.volunteer}h</span>
+        </p>
 
         {/* Application Readiness bar */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-sm font-medium text-gray-700">Application Readiness</span>
-            <span className="text-sm font-bold text-gray-900">{applicationReadiness}%</span>
+        <div>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="text-sm font-semibold text-gray-800">Application Readiness</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowAppTooltip(v => !v)}
+                onBlur={() => setShowAppTooltip(false)}
+                className="text-gray-300 hover:text-gray-500 transition-colors focus:outline-none"
+              >
+                <HelpCircle size={13} />
+              </button>
+              {showAppTooltip && (
+                <div className="absolute left-0 top-5 z-10 w-52 bg-gray-900 text-white text-xs rounded-lg p-2.5 shadow-lg leading-relaxed">
+                  Cumulative Progress — percentage of all roadmap priorities completed across your entire pre-med journey.
+                </div>
+              )}
+            </div>
+            <span className="ml-auto text-sm font-bold text-gray-900">{applicationReadiness}%</span>
           </div>
           <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
             <div
@@ -311,13 +294,13 @@ export function Dashboard({
             />
           </div>
           <p className="text-xs text-gray-400 mt-1.5">
-            {completedPriorities.length} {completedPriorities.length === 1 ? 'priority' : 'priorities'} of cumulative progress completed
+            {completedAllCount} of {totalAllPriorities} priorities of cumulative progress
           </p>
         </div>
 
         {/* Pro tip */}
         <div className="mt-4 bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-start gap-2">
-          <Info size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
+          <Info size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-800">
             <span className="font-semibold">Pro tip:</span> {getProTip()}
           </p>
@@ -326,7 +309,7 @@ export function Dashboard({
 
       {/* Experience Hours Breakdown */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="font-semibold text-gray-900 mb-3 text-sm">Experience Breakdown</h3>
+        <h3 className="font-bold text-gray-900 mb-3 text-sm">Experience Breakdown</h3>
         <div className="space-y-3">
           {[
             { key: 'clinical', label: 'Clinical', color: 'bg-red-500', target: 200 },
@@ -367,14 +350,14 @@ export function Dashboard({
       {/* Semester Focus */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2.5">
-          <Target className="text-blue-500" size={18} />
-          <h3 className="font-semibold text-blue-900 text-sm">Semester Focus</h3>
+          <Target className="text-blue-500" size={16} />
+          <h3 className="font-bold text-blue-900 text-sm">Semester Focus</h3>
         </div>
         <ul className="space-y-1.5">
-          {semesterFocus.map((focus, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-blue-800">
+          {getSemesterFocusList(selectedYear, selectedSemester).map((focus, idx) => (
+            <li key={idx} className="flex items-start gap-2">
               <span className="text-blue-400 font-bold mt-0.5 text-xs">•</span>
-              <span className="flex-1 text-xs">{focus}</span>
+              <span className="flex-1 text-xs text-blue-800">{focus}</span>
             </li>
           ))}
         </ul>
@@ -479,22 +462,4 @@ function getSemesterFocusList(year: string, semester: string): string[] {
   };
 
   return focuses[year]?.[semester] || ['Focus on your current semester priorities'];
-}
-
-function formatYearSemester(year: string, semester: string) {
-  const yearLabel: Record<string, string> = {
-    'undergrad-freshman': 'Freshman',
-    'undergrad-sophomore': 'Sophomore',
-    'undergrad-junior': 'Junior',
-    'undergrad-senior': 'Senior',
-    'gap-year': 'Gap Year',
-  };
-
-  const semesterLabel: Record<string, string> = {
-    fall: 'Fall',
-    spring: 'Spring',
-    summer: 'Summer',
-  };
-
-  return `${yearLabel[year] || year}, ${semesterLabel[semester] || semester}`;
 }

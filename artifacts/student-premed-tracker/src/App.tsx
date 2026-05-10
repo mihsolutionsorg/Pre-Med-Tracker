@@ -205,6 +205,7 @@ export default function App() {
             onUpdateHours={handleUpdateHours}
             onViewChange={setCurrentView}
             onNavigateToTrack={handleNavigateToTrack}
+            onTogglePriority={handleTogglePriority}
           />
         )}
 
