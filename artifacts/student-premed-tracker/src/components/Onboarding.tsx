@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, ClipboardList, Target, BadgeCheck, ChevronRight } from 'lucide-react';
+import { ArrowRight, ClipboardList, BadgeCheck, ChevronRight } from 'lucide-react';
 
 interface OnboardingData {
   name: string;
@@ -21,51 +21,115 @@ const DEFAULTS: OnboardingData = {
   track: 'both',
 };
 
-const SPLASH_SCREENS = [
+// ── Tracking illustration: donut chart + floating badge cards ─────────────────
+function TrackingIllustration() {
+  const cx = 100, cy = 100;
+  const R = 56;
+  const sw = 22;
+  const C = 2 * Math.PI * R; // ≈ 351.86
+
+  // segments: [pct, color, startAngle(deg)]
+  const segments: [number, string, number][] = [
+    [0.38, '#3B82F6', -90],                    // blue  – clinical
+    [0.20, '#FB923C', -90 + 0.38 * 360],       // orange – research
+    [0.32, '#4ADE80', -90 + 0.58 * 360],       // green  – volunteer
+    [0.10, '#F87171', -90 + 0.90 * 360],       // red    – shadowing
+  ];
+
+  const gap = 3;
+
+  return (
+    <svg viewBox="0 0 200 200" width="188" height="188" aria-hidden="true">
+      <defs>
+        <filter id="card-shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#000" floodOpacity="0.13" />
+        </filter>
+      </defs>
+
+      {/* Outer sage ring */}
+      <circle cx={cx} cy={cy} r={R + 16} fill="none" stroke="#86efac" strokeWidth={10} strokeOpacity={0.35} />
+
+      {/* Donut segments */}
+      {segments.map(([pct, color, rot], i) => (
+        <circle
+          key={i}
+          cx={cx} cy={cy} r={R}
+          fill="none"
+          stroke={color}
+          strokeWidth={sw}
+          strokeDasharray={`${pct * C - gap} ${C - pct * C + gap}`}
+          transform={`rotate(${rot} ${cx} ${cy})`}
+          strokeLinecap="butt"
+        />
+      ))}
+
+      {/* White donut hole */}
+      <circle cx={cx} cy={cy} r={R - sw / 2 - 1} fill="white" fillOpacity={0.15} />
+
+      {/* Hours badge — top left */}
+      <rect x="6" y="18" width="62" height="50" rx="10" fill="white" filter="url(#card-shadow)" />
+      {/* Clock face */}
+      <circle cx="28" cy="37" r="9" fill="none" stroke="#6B7280" strokeWidth="1.5" />
+      <line x1="28" y1="30" x2="28" y2="37" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="28" y1="37" x2="34" y2="37" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" />
+      <text x="51" y="33" textAnchor="middle" fontSize="8" fontWeight="700" fill="#374151" fontFamily="system-ui,sans-serif">Hrs</text>
+      <text x="37" y="58" textAnchor="middle" fontSize="9" fontWeight="700" fill="#1F2937" fontFamily="system-ui,sans-serif">Hours</text>
+
+      {/* GPA / MCAT badge — bottom right */}
+      <rect x="132" y="132" width="62" height="52" rx="10" fill="white" filter="url(#card-shadow)" />
+      <text x="163" y="151" textAnchor="middle" fontSize="11" fontWeight="800" fill="#1D4ED8" fontFamily="system-ui,sans-serif">GPA</text>
+      <line x1="142" y1="157" x2="184" y2="157" stroke="#E5E7EB" strokeWidth="1.2" />
+      <text x="163" y="172" textAnchor="middle" fontSize="11" fontWeight="800" fill="#7C3AED" fontFamily="system-ui,sans-serif">MCAT</text>
+    </svg>
+  );
+}
+
+// ── Splash screen config ──────────────────────────────────────────────────────
+type SplashScreen =
+  | { kind: 'icon'; icon: React.ElementType; headline: string; sub: string }
+  | { kind: 'illustration'; illustration: React.ReactNode; headline: string; sub: string };
+
+const SPLASH_SCREENS: SplashScreen[] = [
   {
+    kind: 'icon',
     icon: ClipboardList,
     headline: 'Your Pre-Med Journey, Organized.',
     sub: 'No more guessing what comes next. A personalized roadmap from Freshman year to White Coat.',
   },
   {
-    icon: Target,
+    kind: 'illustration',
+    illustration: <TrackingIllustration />,
     headline: 'Track Every Milestone.',
     sub: 'Log clinical hours, shadow shifts, and GPA trends in one secure place.',
   },
   {
+    kind: 'icon',
     icon: BadgeCheck,
     headline: 'Ready to start?',
     sub: 'Build your roadmap in under a minute. You can always update your info later.',
   },
 ];
 
+// ── Component ─────────────────────────────────────────────────────────────────
 export function Onboarding({ onComplete }: OnboardingProps) {
   const [phase, setPhase] = useState<'splash' | 'data'>('splash');
-  const [splashStep, setSplashStep] = useState(0); // 0-indexed, 0–2
-  const [step, setStep] = useState(1);             // 1–4 for data steps
+  const [splashStep, setSplashStep] = useState(0);
+  const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [school, setSchool] = useState('');
   const [year, setYear] = useState('');
   const [semester, setSemester] = useState('');
 
-  const handleSkip = () => {
-    onComplete(DEFAULTS);
-  };
+  const handleSkip = () => onComplete(DEFAULTS);
 
   const handleSplashNext = () => {
-    if (splashStep < 2) {
-      setSplashStep(splashStep + 1);
-    } else {
-      setPhase('data');
-    }
+    if (splashStep < 2) setSplashStep(splashStep + 1);
+    else setPhase('data');
   };
 
   const handleDataNext = () => {
-    if (step < 4) {
-      setStep(step + 1);
-    } else {
-      onComplete({ name: name.trim() || 'there', school, year, semester, track: 'both' });
-    }
+    if (step < 4) setStep(step + 1);
+    else onComplete({ name: name.trim() || 'there', school, year, semester, track: 'both' });
   };
 
   const canProceed = () => {
@@ -78,10 +142,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     }
   };
 
-  // ─── Splash Phase ────────────────────────────────────────────────────────────
+  // ─── Splash Phase ───────────────────────────────────────────────────────────
   if (phase === 'splash') {
     const screen = SPLASH_SCREENS[splashStep];
-    const Icon = screen.icon;
     const isLast = splashStep === 2;
 
     return (
@@ -96,12 +159,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </button>
         </div>
 
-        {/* Content — centred */}
+        {/* Content */}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-2">
-          {/* Icon circle */}
-          <div className="w-24 h-24 rounded-full bg-white/15 flex items-center justify-center mb-8 shadow-lg">
-            <Icon size={44} className="text-white" strokeWidth={1.5} />
-          </div>
+          {screen.kind === 'illustration' ? (
+            <div className="mb-8 drop-shadow-xl">
+              {screen.illustration}
+            </div>
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-white/15 flex items-center justify-center mb-8 shadow-lg">
+              <screen.icon size={44} className="text-white" strokeWidth={1.5} />
+            </div>
+          )}
 
           <h1 className="text-3xl font-extrabold text-white leading-tight mb-4">
             {screen.headline}
@@ -145,7 +213,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     );
   }
 
-  // ─── Data Collection Phase ───────────────────────────────────────────────────
+  // ─── Data Collection Phase ──────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full">
@@ -154,8 +222,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
             Pre-Med Journey
           </h1>
-
-          {/* 4-step progress bar */}
           <div className="flex gap-2">
             {[1, 2, 3, 4].map((s) => (
               <div
@@ -276,11 +342,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   : 'bg-gray-200 cursor-not-allowed text-gray-400'
               }`}
             >
-              {step < 4 ? (
-                <>Continue <ArrowRight size={18} /></>
-              ) : (
-                'Build My Roadmap 🎉'
-              )}
+              {step < 4 ? <><span>Continue</span><ArrowRight size={18} /></> : 'Build My Roadmap 🎉'}
             </button>
 
             {step > 1 && (
@@ -292,7 +354,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               </button>
             )}
 
-            {/* Skip for now */}
             <button
               onClick={handleSkip}
               className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors"
