@@ -299,7 +299,8 @@ export function Dashboard({
         <p className="text-xs text-gray-400 mb-4">
           Clinical <span className="font-medium text-gray-600">{experienceHours.clinical}h</span>
           {' · '}Research <span className="font-medium text-gray-600">{experienceHours.research}h</span>
-          {' · '}Service <span className="font-medium text-gray-600">{experienceHours.volunteer}h</span>
+          {' · '}Volunteer <span className="font-medium text-gray-600">{experienceHours.volunteer}h</span>
+          {' · '}Shadowing <span className="font-medium text-gray-600">{experienceHours.shadowing}h</span>
         </p>
 
         {/* Application Readiness bar */}
@@ -339,45 +340,6 @@ export function Dashboard({
           <p className="text-xs text-amber-800">
             <span className="font-semibold">Pro tip:</span> {getProTip()}
           </p>
-        </div>
-      </div>
-
-      {/* Experience Hours Breakdown */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="font-bold text-gray-900 mb-3 text-sm">Experience Breakdown</h3>
-        <div className="space-y-3">
-          {[
-            { key: 'clinical',  label: 'Clinical',  color: 'bg-red-500',    target: 200 },
-            { key: 'research',  label: 'Research',  color: 'bg-blue-500',   target: 100 },
-            { key: 'volunteer', label: 'Volunteer', color: 'bg-green-500',  target: 100 },
-            { key: 'shadowing', label: 'Shadowing', color: 'bg-purple-500', target: 100 },
-          ].map((item) => {
-            const hours = experienceHours[item.key as keyof typeof experienceHours];
-            const percentage = Math.min(100, (hours / item.target) * 100);
-            return (
-              <div key={item.key}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-medium text-gray-600">{item.label}</span>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      value={hours}
-                      onChange={(e) => onUpdateHours(item.key, parseInt(e.target.value) || 0)}
-                      className="w-14 px-2 py-0.5 border border-gray-200 rounded text-xs text-right focus:border-blue-400 focus:outline-none"
-                      min="0"
-                    />
-                    <span className="text-xs text-gray-400">/ {item.target}h</span>
-                  </div>
-                </div>
-                <div className="bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className={`${item.color} h-full rounded-full transition-all duration-500`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
 
