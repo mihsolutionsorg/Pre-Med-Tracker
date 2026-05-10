@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, BadgeCheck, BookOpen, Info, Check, HelpCircle } from 'lucide-react';
+import { Target, BadgeCheck, BookOpen, Info, Check, HelpCircle, PartyPopper } from 'lucide-react';
 import { semesterPriorities, ALL_PRIORITY_IDS } from '../data/semesterPriorities';
 
 interface Course {
@@ -48,6 +48,20 @@ const gradePoints: Record<string, number> = {
   'F': 0.0,
 };
 
+const YEAR_LABEL: Record<string, string> = {
+  'undergrad-freshman': 'Freshman',
+  'undergrad-sophomore': 'Sophomore',
+  'undergrad-junior': 'Junior',
+  'undergrad-senior': 'Senior',
+  'gap-year': 'Gap Year',
+};
+
+const SEMESTER_LABEL: Record<string, string> = {
+  fall: 'Fall',
+  spring: 'Spring',
+  summer: 'Summer',
+};
+
 export function Dashboard({
   name,
   year,
@@ -77,23 +91,27 @@ export function Dashboard({
   const calculateGPA = (courseList: Course[]) => {
     if (courseList.length === 0) return 0;
     const totalPoints = courseList.reduce(
-      (sum, course) => sum + gradePoints[course.grade] * course.credits, 0
+      (sum, c) => sum + gradePoints[c.grade] * c.credits, 0
     );
-    const totalCredits = courseList.reduce((sum, course) => sum + course.credits, 0);
+    const totalCredits = courseList.reduce((sum, c) => sum + c.credits, 0);
     return totalCredits > 0 ? totalPoints / totalCredits : 0;
   };
 
   const currentGPA = calculateGPA(courses);
-
   const selectedYear = planYear || year;
   const selectedSemester = planSemester || semester;
 
-  // Current term priorities — the exact same list used in the Plan/Roadmap tab
+  // Full term list — same source as Plan tab
   const termPriorities = semesterPriorities[selectedYear]?.[selectedSemester] || [];
   const termCompleted = termPriorities.filter(p => completedPriorities.includes(p.id)).length;
   const termTotal = termPriorities.length;
+  const allTermComplete = termTotal > 0 && termCompleted === termTotal;
 
-  // Application readiness = % of ALL priorities across all years ever completed
+  // Top 3 incomplete tasks — dynamically shift as tasks are checked off
+  const incompleteTasks = termPriorities.filter(p => !completedPriorities.includes(p.id));
+  const top3 = incompleteTasks.slice(0, 3);
+
+  // Application readiness = % of ALL priorities across the whole journey
   const totalAllPriorities = ALL_PRIORITY_IDS.length;
   const completedAllCount = ALL_PRIORITY_IDS.filter(id => completedPriorities.includes(id)).length;
   const applicationReadiness = totalAllPriorities > 0
@@ -115,14 +133,7 @@ export function Dashboard({
     return 'Keep logging — consistency in clinical experience strengthens your narrative';
   };
 
-  const yearLabel: Record<string, string> = {
-    'undergrad-freshman': 'Freshman',
-    'undergrad-sophomore': 'Sophomore',
-    'undergrad-junior': 'Junior',
-    'undergrad-senior': 'Senior',
-    'gap-year': 'Gap Year',
-  };
-  const semesterLabel: Record<string, string> = { fall: 'Fall', spring: 'Spring', summer: 'Summer' };
+  const termName = `${YEAR_LABEL[selectedYear] || selectedYear} ${SEMESTER_LABEL[selectedSemester] || selectedSemester}`;
 
   return (
     <div className="space-y-4">
@@ -137,23 +148,24 @@ export function Dashboard({
         </p>
       </div>
 
-      {/* Term Readiness — Checklist Card */}
+      {/* Term Readiness Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-1">
+
+        {/* Card header */}
+        <div className="flex items-start justify-between mb-0.5">
           <div className="flex items-center gap-1.5">
             <h3 className="text-base font-bold text-gray-900">Term Readiness</h3>
             <div className="relative">
               <button
                 onClick={() => setShowReadinessTooltip(v => !v)}
-                onBlur={() => setShowReadinessTooltip(false)}
+                onBlur={() => setTimeout(() => setShowReadinessTooltip(false), 150)}
                 className="text-gray-300 hover:text-gray-500 transition-colors focus:outline-none"
               >
                 <HelpCircle size={15} />
               </button>
               {showReadinessTooltip && (
-                <div className="absolute left-0 top-6 z-10 w-56 bg-gray-900 text-white text-xs rounded-lg p-2.5 shadow-lg leading-relaxed">
-                  This tracks your progress for your current semester milestones. Check off tasks as you complete them — they sync with your Plan tab.
+                <div className="absolute left-0 top-6 z-10 w-60 bg-gray-900 text-white text-xs rounded-lg p-2.5 shadow-lg leading-relaxed">
+                  This tracks your progress for your current semester milestones. Check off tasks as you complete them — they sync with your Plan tab automatically.
                 </div>
               )}
             </div>
@@ -165,57 +177,80 @@ export function Dashboard({
           )}
         </div>
 
-        <p className="text-xs text-gray-500 mb-3">
-          Your {yearLabel[selectedYear] || selectedYear} {semesterLabel[selectedSemester] || selectedSemester} Roadmap
-        </p>
+        {/* Sub-label */}
+        <p className="text-xs text-gray-500 mb-3">Your {termName} Roadmap</p>
 
-        {/* Fraction count — bold, prominent */}
+        {/* Progress fraction — always visible */}
         <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-center">
           <span className="text-2xl font-extrabold text-gray-900">
             {termCompleted} of {termTotal} task{termTotal !== 1 ? 's' : ''} complete
           </span>
         </div>
 
-        {/* Checklist — same items as Plan tab */}
-        {termPriorities.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-2">No priorities for this semester.</p>
+        {/* Body: empty state OR top-3 checklist */}
+        {termTotal === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-2">No priorities defined for this semester.</p>
+        ) : allTermComplete ? (
+          /* 🎉 Celebratory empty state */
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            <PartyPopper size={32} className="text-yellow-400" />
+            <p className="text-sm font-bold text-gray-900">
+              You've crushed all your {termName.toLowerCase()} milestones!
+            </p>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Check the Plan tab to see what's coming next on your pre-med journey.
+            </p>
+            <button
+              onClick={() => onViewChange('plan')}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            >
+              See What's Next →
+            </button>
+          </div>
         ) : (
-          <ul className="space-y-2">
-            {termPriorities.map((priority) => {
-              const isCompleted = completedPriorities.includes(priority.id);
-              return (
+          <>
+            {/* Top 3 incomplete tasks */}
+            <ul className="space-y-2 mb-3">
+              {top3.map((priority) => (
                 <li key={priority.id}>
                   <button
                     onClick={() => onTogglePriority(priority.id)}
-                    className={`w-full flex items-start gap-3 p-2.5 rounded-lg transition-all text-left ${
-                      isCompleted ? 'opacity-60' : 'hover:bg-gray-50'
-                    }`}
+                    className="w-full flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/40 transition-all text-left group"
                   >
-                    <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${
-                      isCompleted ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                    }`}>
-                      {isCompleted && <Check size={11} className="text-white" strokeWidth={3} />}
+                    {/* Checkbox */}
+                    <div className="flex-shrink-0 w-5 h-5 rounded border-2 border-gray-300 group-hover:border-blue-400 flex items-center justify-center mt-0.5 transition-colors">
+                      <Check size={11} className="text-gray-300 group-hover:text-blue-400" strokeWidth={3} />
                     </div>
-                    <span className={`text-sm leading-snug flex-1 ${
-                      isCompleted ? 'text-gray-500 line-through' : 'text-gray-800'
-                    }`}>
-                      {priority.text}
-                    </span>
+
+                    {/* Primary / Secondary text */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 leading-snug">
+                        {priority.label}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5 leading-snug">
+                        {priority.text}
+                      </p>
+                    </div>
                   </button>
                 </li>
-              );
-            })}
-          </ul>
-        )}
+              ))}
+            </ul>
 
-        {/* "See full plan" link */}
-        {termPriorities.length > 0 && (
-          <button
-            onClick={() => onViewChange('plan')}
-            className="w-full mt-3 text-xs text-blue-500 hover:text-blue-700 font-medium text-center py-1 transition-colors"
-          >
-            See full roadmap in Plan tab →
-          </button>
+            {/* Remaining count hint */}
+            {incompleteTasks.length > 3 && (
+              <p className="text-xs text-gray-400 text-center mb-3">
+                +{incompleteTasks.length - 3} more task{incompleteTasks.length - 3 !== 1 ? 's' : ''} remaining
+              </p>
+            )}
+
+            {/* View Full Roadmap CTA */}
+            <button
+              onClick={() => onViewChange('plan')}
+              className="w-full bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-gray-700 hover:text-blue-700 text-sm font-semibold py-2.5 rounded-xl transition-all"
+            >
+              View Full Roadmap →
+            </button>
+          </>
         )}
       </div>
 
@@ -274,7 +309,7 @@ export function Dashboard({
             <div className="relative">
               <button
                 onClick={() => setShowAppTooltip(v => !v)}
-                onBlur={() => setShowAppTooltip(false)}
+                onBlur={() => setTimeout(() => setShowAppTooltip(false), 150)}
                 className="text-gray-300 hover:text-gray-500 transition-colors focus:outline-none"
               >
                 <HelpCircle size={13} />
@@ -312,14 +347,13 @@ export function Dashboard({
         <h3 className="font-bold text-gray-900 mb-3 text-sm">Experience Breakdown</h3>
         <div className="space-y-3">
           {[
-            { key: 'clinical', label: 'Clinical', color: 'bg-red-500', target: 200 },
-            { key: 'research', label: 'Research', color: 'bg-blue-500', target: 100 },
-            { key: 'volunteer', label: 'Volunteer', color: 'bg-green-500', target: 100 },
+            { key: 'clinical',  label: 'Clinical',  color: 'bg-red-500',    target: 200 },
+            { key: 'research',  label: 'Research',  color: 'bg-blue-500',   target: 100 },
+            { key: 'volunteer', label: 'Volunteer', color: 'bg-green-500',  target: 100 },
             { key: 'shadowing', label: 'Shadowing', color: 'bg-purple-500', target: 100 },
           ].map((item) => {
             const hours = experienceHours[item.key as keyof typeof experienceHours];
             const percentage = Math.min(100, (hours / item.target) * 100);
-
             return (
               <div key={item.key}>
                 <div className="flex items-center justify-between mb-1.5">
