@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Pencil, X, Check, Trash2, Info, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Pencil, X, Check, Trash2, Info, FileSpreadsheet, FileText, FileDown, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface UserProfile {
@@ -16,44 +18,37 @@ interface ProfileProps {
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
 }
 
-const YEAR_OPTIONS = [
-  { value: 'undergrad-freshman',  label: 'Freshman' },
-  { value: 'undergrad-sophomore', label: 'Sophomore' },
-  { value: 'undergrad-junior',    label: 'Junior' },
-  { value: 'undergrad-senior',    label: 'Senior' },
-  { value: 'gap-year',            label: 'Gap Year' },
-];
-
-const SEMESTER_OPTIONS = [
-  { value: 'fall',   label: 'Fall' },
-  { value: 'spring', label: 'Spring' },
-  { value: 'summer', label: 'Summer' },
-];
-
 function getYearLabel(year: string) {
-  return YEAR_OPTIONS.find((o) => o.value === year)?.label ?? year;
+  const labels: Record<string, string> = {
+    'undergrad-freshman': 'Freshman',
+    'undergrad-sophomore': 'Sophomore',
+    'undergrad-junior': 'Junior',
+    'undergrad-senior': 'Senior',
+    'gap-year': 'Gap Year',
+  };
+  return labels[year] ?? year;
+}
+
+function downloadBlob(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<Pick<UserProfile, 'name' | 'school' | 'year' | 'semester'>>({
-    name: userProfile.name,
-    school: userProfile.school,
-    year: userProfile.year,
-    semester: userProfile.semester,
-  });
+  const [draft, setDraft] = useState({ name: userProfile.name, school: userProfile.school });
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
   const isProfileIncomplete = !userProfile.name.trim() || !userProfile.school.trim();
 
   const handleStartEdit = () => {
-    setDraft({
-      name: userProfile.name,
-      school: userProfile.school,
-      year: userProfile.year,
-      semester: userProfile.semester,
-    });
+    setDraft({ name: userProfile.name, school: userProfile.school });
     setEditing(true);
   };
 
@@ -63,96 +58,271 @@ export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
   };
 
   const handleCancel = () => {
-    setDraft({
-      name: userProfile.name,
-      school: userProfile.school,
-      year: userProfile.year,
-      semester: userProfile.semester,
-    });
+    setDraft({ name: userProfile.name, school: userProfile.school });
     setEditing(false);
   };
 
-  const handleExportExcel = () => {
+  // ── Shared data loaders ───────────────────────────────────────────────────
+  const loadData = () => {
     const gradePoints: Record<string, number> = {
-      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
-      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
-      'F': 0.0,
+      'A+': 4.0, 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+      'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'D-': 0.7, 'F': 0.0,
     };
+    const courses: { name: string; grade: string; credits: number; isBCPM: boolean }[] =
+      JSON.parse(localStorage.getItem('premed-courses') || '[]');
+    const hours: { clinical: number; research: number; volunteer: number; shadowing: number } =
+      JSON.parse(localStorage.getItem('premed-hours') || '{"clinical":0,"research":0,"volunteer":0,"shadowing":0}');
+    const examPlan: { targetDate: string; targetScore: number; currentPhase: string; weeklyHours: number } =
+      JSON.parse(localStorage.getItem('premed-exam-plan') || '{"targetDate":"","targetScore":0,"currentPhase":"","weeklyHours":0}');
+    const practiceTests: { date: string; score: number; source: string }[] =
+      JSON.parse(localStorage.getItem('premed-practice-tests') || '[]');
+    const completedPriorities: string[] =
+      JSON.parse(localStorage.getItem('premed-priorities') || '[]');
 
-    const coursesData = JSON.parse(localStorage.getItem('premed-courses') || '[]');
-    const hoursData = JSON.parse(localStorage.getItem('premed-hours') || '{"clinical":0,"research":0,"volunteer":0,"shadowing":0}');
-    const examPlanData = JSON.parse(localStorage.getItem('premed-exam-plan') || '{"targetDate":"","targetScore":0,"currentPhase":"","weeklyHours":0}');
-    const practiceTestsData = JSON.parse(localStorage.getItem('premed-practice-tests') || '[]');
-    const prioritiesData = JSON.parse(localStorage.getItem('premed-priorities') || '[]');
+    const totalCredits = courses.reduce((s, c) => s + c.credits, 0);
+    const totalPoints = courses.reduce((s, c) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 'N/A';
 
+    const bcpm = courses.filter((c) => c.isBCPM);
+    const bcpmCredits = bcpm.reduce((s, c) => s + c.credits, 0);
+    const bcpmPoints = bcpm.reduce((s, c) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
+    const bcpmGpa = bcpmCredits > 0 ? (bcpmPoints / bcpmCredits).toFixed(2) : 'N/A';
+
+    const avgScore =
+      practiceTests.length > 0
+        ? (practiceTests.reduce((s, t) => s + t.score, 0) / practiceTests.length).toFixed(1)
+        : 'N/A';
+
+    return { courses, hours, examPlan, practiceTests, completedPriorities, gpa, bcpmGpa, avgScore, gradePoints };
+  };
+
+  // ── Excel export ──────────────────────────────────────────────────────────
+  const handleExportExcel = () => {
+    const { courses, hours, examPlan, practiceTests, completedPriorities, gpa, bcpmGpa, avgScore, gradePoints } = loadData();
     const wb = XLSX.utils.book_new();
 
-    const profileData = [
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
       ['Pre-Med Journey - Data Export'],
       ['Export Date:', new Date().toLocaleDateString()],
       [],
       ['Profile Information'],
-      ['Name:', userProfile.name],
-      ['School:', userProfile.school],
+      ['Name:', userProfile.name || 'Not set'],
+      ['School:', userProfile.school || 'Not set'],
       ['Year:', getYearLabel(userProfile.year)],
       ['Semester:', userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(profileData), 'Profile');
+    ]), 'Profile');
 
-    if (coursesData.length > 0) {
-      const courseHeaders = [['Course Name', 'Grade', 'Credits', 'Grade Points', 'Quality Points', 'BCPM']];
-      const courseRows = coursesData.map((course: { name: string; grade: string; credits: number; isBCPM: boolean }) => [
-        course.name,
-        course.grade,
-        course.credits,
-        gradePoints[course.grade] || 0,
-        (gradePoints[course.grade] || 0) * course.credits,
-        course.isBCPM ? 'Yes' : 'No',
-      ]);
-      const totalCredits = coursesData.reduce((s: number, c: { credits: number }) => s + c.credits, 0);
-      const totalPoints = coursesData.reduce((s: number, c: { grade: string; credits: number }) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
-      const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
-      const bcpmCourses = coursesData.filter((c: { isBCPM: boolean }) => c.isBCPM);
-      const bcpmCredits = bcpmCourses.reduce((s: number, c: { credits: number }) => s + c.credits, 0);
-      const bcpmPoints = bcpmCourses.reduce((s: number, c: { grade: string; credits: number }) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
-      const bcpmGPA = bcpmCredits > 0 ? bcpmPoints / bcpmCredits : 0;
-      const summaryRows = [[], ['GPA Summary'], ['Total Credits:', totalCredits], ['Cumulative GPA:', gpa.toFixed(2)], ['BCPM Credits:', bcpmCredits], ['BCPM GPA:', bcpmGPA.toFixed(2)]];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([...courseHeaders, ...courseRows, ...summaryRows]), 'Courses & GPA');
+    if (courses.length > 0) {
+      const rows = courses.map((c) => [c.name, c.grade, c.credits, gradePoints[c.grade] || 0, (gradePoints[c.grade] || 0) * c.credits, c.isBCPM ? 'Yes' : 'No']);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Course Name', 'Grade', 'Credits', 'Grade Points', 'Quality Points', 'BCPM'],
+        ...rows,
+        [], ['GPA Summary'], ['Cumulative GPA:', gpa], ['BCPM GPA:', bcpmGpa],
+      ]), 'Courses & GPA');
     }
 
-    const hoursRows = [
-      ['Clinical', hoursData.clinical, 200, `${Math.min(100, (hoursData.clinical / 200) * 100).toFixed(0)}%`],
-      ['Research', hoursData.research, 100, `${Math.min(100, (hoursData.research / 100) * 100).toFixed(0)}%`],
-      ['Volunteer', hoursData.volunteer, 100, `${Math.min(100, (hoursData.volunteer / 100) * 100).toFixed(0)}%`],
-      ['Shadowing', hoursData.shadowing, 100, `${Math.min(100, (hoursData.shadowing / 100) * 100).toFixed(0)}%`],
-      [],
-      ['Total Hours:', hoursData.clinical + hoursData.research + hoursData.volunteer + hoursData.shadowing],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Experience Type', 'Hours', 'Target', 'Progress'], ...hoursRows]), 'Experience Hours');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Experience Type', 'Hours', 'Target', 'Progress'],
+      ['Clinical', hours.clinical, 200, `${Math.min(100, (hours.clinical / 200) * 100).toFixed(0)}%`],
+      ['Research', hours.research, 100, `${Math.min(100, (hours.research / 100) * 100).toFixed(0)}%`],
+      ['Volunteer', hours.volunteer, 100, `${Math.min(100, (hours.volunteer / 100) * 100).toFixed(0)}%`],
+      ['Shadowing', hours.shadowing, 100, `${Math.min(100, (hours.shadowing / 100) * 100).toFixed(0)}%`],
+      [], ['Total Hours:', hours.clinical + hours.research + hours.volunteer + hours.shadowing],
+    ]), 'Experience Hours');
 
-    const mcatData: (string | number)[][] = [
+    const mcatRows: (string | number)[][] = [
       ['MCAT Exam Plan'],
-      ['Target Date:', examPlanData.targetDate || 'Not Set'],
-      ['Target Score:', examPlanData.targetScore || 'Not Set'],
-      ['Current Phase:', examPlanData.currentPhase || 'Not Set'],
-      ['Weekly Study Hours:', examPlanData.weeklyHours || 0],
+      ['Target Date:', examPlan.targetDate || 'Not Set'],
+      ['Target Score:', examPlan.targetScore || 'Not Set'],
+      ['Current Phase:', examPlan.currentPhase || 'Not Set'],
+      ['Weekly Study Hours:', examPlan.weeklyHours || 0],
       [],
     ];
-    if (practiceTestsData.length > 0) {
-      mcatData.push(['Practice Tests'], ['Date', 'Score', 'Source']);
-      practiceTestsData.forEach((t: { date: string; score: number; source: string }) => mcatData.push([t.date, t.score, t.source]));
-      const avg = practiceTestsData.reduce((s: number, t: { score: number }) => s + t.score, 0) / practiceTestsData.length;
-      mcatData.push([], ['Average Score:', avg.toFixed(1)], ['Total Practice Tests:', practiceTestsData.length]);
-    } else {
-      mcatData.push(['No practice tests recorded yet']);
+    if (practiceTests.length > 0) {
+      mcatRows.push(['Practice Tests'], ['Date', 'Score', 'Source']);
+      practiceTests.forEach((t) => mcatRows.push([t.date, t.score, t.source]));
+      mcatRows.push([], ['Average Score:', avgScore]);
     }
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mcatData), 'MCAT');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mcatRows), 'MCAT');
 
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Roadmap Progress'], ['Completed Priorities:', prioritiesData.length], [], ['Note: Detailed priority checklist available in the app']]), 'Roadmap Progress');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Roadmap Progress'],
+      ['Completed Priorities:', completedPriorities.length],
+      [],
+      ['Note: Detailed priority checklist available in the app'],
+    ]), 'Roadmap Progress');
 
     XLSX.writeFile(wb, `premed-data-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  // ── CSV export ────────────────────────────────────────────────────────────
+  const handleExportCSV = () => {
+    const { hours, examPlan, gpa, bcpmGpa, avgScore, completedPriorities } = loadData();
+    const date = new Date().toLocaleDateString();
+
+    const rows = [
+      ['Pre-Med Journey Progress Export', date],
+      [],
+      ['PROFILE'],
+      ['Name', userProfile.name || 'Not set'],
+      ['School', userProfile.school || 'Not set'],
+      ['Year', getYearLabel(userProfile.year)],
+      ['Semester', userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)],
+      [],
+      ['GPA SUMMARY'],
+      ['Cumulative GPA', gpa],
+      ['BCPM GPA', bcpmGpa],
+      [],
+      ['EXPERIENCE HOURS'],
+      ['Type', 'Hours', 'Target', '% Complete'],
+      ['Clinical', hours.clinical, 200, `${Math.min(100, (hours.clinical / 200) * 100).toFixed(0)}%`],
+      ['Research', hours.research, 100, `${Math.min(100, (hours.research / 100) * 100).toFixed(0)}%`],
+      ['Volunteer', hours.volunteer, 100, `${Math.min(100, (hours.volunteer / 100) * 100).toFixed(0)}%`],
+      ['Shadowing', hours.shadowing, 100, `${Math.min(100, (hours.shadowing / 100) * 100).toFixed(0)}%`],
+      ['Total Hours', hours.clinical + hours.research + hours.volunteer + hours.shadowing],
+      [],
+      ['MCAT PLAN'],
+      ['Target Date', examPlan.targetDate || 'Not Set'],
+      ['Target Score', examPlan.targetScore || 'Not Set'],
+      ['Current Phase', examPlan.currentPhase || 'Not Set'],
+      ['Weekly Study Hours', examPlan.weeklyHours || 0],
+      ['Practice Test Avg', avgScore],
+      [],
+      ['ROADMAP PROGRESS'],
+      ['Completed Priorities', completedPriorities.length],
+    ];
+
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    downloadBlob(csv, `premed-progress-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+  };
+
+  // ── PDF export ────────────────────────────────────────────────────────────
+  const handleExportPDF = () => {
+    const { hours, examPlan, gpa, bcpmGpa, avgScore, practiceTests, completedPriorities } = loadData();
+    const doc = new jsPDF();
+    const dateStr = new Date().toLocaleDateString();
+    let y = 20;
+
+    // Header
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, 210, 32, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pre-Med Journey', 14, 14);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Progress Report', 14, 22);
+    doc.text(`Generated: ${dateStr}`, 140, 22);
+    doc.setTextColor(30, 30, 30);
+    y = 44;
+
+    // Profile
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Profile', 14, y);
+    y += 6;
+    autoTable(doc, {
+      startY: y,
+      head: [],
+      body: [
+        ['Name', userProfile.name || 'Not set'],
+        ['School', userProfile.school || 'Not set'],
+        ['Year', getYearLabel(userProfile.year)],
+        ['Semester', userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 2.5 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] } },
+    });
+    y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+
+    // GPA
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GPA Summary', 14, y);
+    y += 6;
+    autoTable(doc, {
+      startY: y,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Cumulative GPA', gpa],
+        ['BCPM GPA', bcpmGpa],
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 10 },
+    });
+    y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+
+    // Experience Hours
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Experience Hours', 14, y);
+    y += 6;
+    autoTable(doc, {
+      startY: y,
+      head: [['Type', 'Hours', 'Target', '% Complete']],
+      body: [
+        ['Clinical', hours.clinical, 200, `${Math.min(100, (hours.clinical / 200) * 100).toFixed(0)}%`],
+        ['Research', hours.research, 100, `${Math.min(100, (hours.research / 100) * 100).toFixed(0)}%`],
+        ['Volunteer', hours.volunteer, 100, `${Math.min(100, (hours.volunteer / 100) * 100).toFixed(0)}%`],
+        ['Shadowing', hours.shadowing, 100, `${Math.min(100, (hours.shadowing / 100) * 100).toFixed(0)}%`],
+        ['Total', hours.clinical + hours.research + hours.volunteer + hours.shadowing, '—', '—'],
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 10 },
+    });
+    y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+
+    // MCAT
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MCAT Plan', 14, y);
+    y += 6;
+    autoTable(doc, {
+      startY: y,
+      head: [],
+      body: [
+        ['Target Date', examPlan.targetDate || 'Not Set'],
+        ['Target Score', examPlan.targetScore ? String(examPlan.targetScore) : 'Not Set'],
+        ['Current Phase', examPlan.currentPhase || 'Not Set'],
+        ['Weekly Study Hours', String(examPlan.weeklyHours || 0)],
+        ['Practice Test Average', avgScore],
+        ['Total Practice Tests', String(practiceTests.length)],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 2.5 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60, textColor: [100, 100, 100] } },
+    });
+    y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+
+    // Roadmap progress
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Roadmap Progress', 14, y);
+    y += 6;
+    autoTable(doc, {
+      startY: y,
+      head: [],
+      body: [['Completed Priorities', String(completedPriorities.length)]],
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 2.5 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60, textColor: [100, 100, 100] } },
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('© 2026 SERH Solutions LLC. All data stored locally on device.', 14, 290);
+      doc.text(`Page ${i} of ${pageCount}`, 180, 290);
+    }
+
+    doc.save(`premed-report-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleClearData = () => {
@@ -195,7 +365,7 @@ export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">Your profile is incomplete</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Add your name and school to personalize your roadmap and export.
+              Add your name and school to personalize your roadmap and exports.
             </p>
           </div>
           <button
@@ -259,7 +429,7 @@ export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
           </div>
 
           {/* School */}
-          <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-3">
+          <div className="flex items-center justify-between py-2 gap-3">
             <span className="text-sm text-gray-500 shrink-0 w-20">School</span>
             {editing ? (
               <input
@@ -275,76 +445,59 @@ export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
               </span>
             )}
           </div>
-
-          {/* Year */}
-          <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-3">
-            <span className="text-sm text-gray-500 shrink-0 w-20">Year</span>
-            {editing ? (
-              <select
-                value={draft.year}
-                onChange={(e) => setDraft({ ...draft, year: e.target.value })}
-                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
-              >
-                {YEAR_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            ) : (
-              <span className="font-medium text-gray-900 text-right">
-                {getYearLabel(userProfile.year)}
-              </span>
-            )}
-          </div>
-
-          {/* Semester */}
-          <div className="flex items-center justify-between py-2 gap-3">
-            <span className="text-sm text-gray-500 shrink-0 w-20">Semester</span>
-            {editing ? (
-              <select
-                value={draft.semester}
-                onChange={(e) => setDraft({ ...draft, semester: e.target.value })}
-                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
-              >
-                {SEMESTER_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            ) : (
-              <span className="font-medium text-gray-900 text-right">
-                {userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)}
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Data Management */}
       <div className="bg-white rounded-xl shadow-md p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Management</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Data Management</h3>
+        <p className="text-xs text-gray-500 mb-4">Export your full progress as a file you can save or share.</p>
         <div className="space-y-3">
+          {/* PDF */}
           <button
-            onClick={handleExportExcel}
-            className="w-full flex items-center justify-between p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+            onClick={handleExportPDF}
+            className="w-full flex items-center gap-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <FileSpreadsheet className="text-green-600" size={24} />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Export to Excel</div>
-                <div className="text-sm text-gray-600">Download formatted spreadsheet for analysis</div>
-              </div>
+            <FileText className="text-blue-600 shrink-0" size={24} />
+            <div className="text-left">
+              <div className="font-semibold text-gray-900">Export as PDF</div>
+              <div className="text-sm text-gray-600">Formatted progress report — great for printing or sharing</div>
             </div>
           </button>
 
+          {/* CSV */}
+          <button
+            onClick={handleExportCSV}
+            className="w-full flex items-center gap-4 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            <FileDown className="text-purple-600 shrink-0" size={24} />
+            <div className="text-left">
+              <div className="font-semibold text-gray-900">Export as CSV</div>
+              <div className="text-sm text-gray-600">Lightweight summary — opens in any spreadsheet app</div>
+            </div>
+          </button>
+
+          {/* Excel */}
+          <button
+            onClick={handleExportExcel}
+            className="w-full flex items-center gap-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+          >
+            <FileSpreadsheet className="text-green-600 shrink-0" size={24} />
+            <div className="text-left">
+              <div className="font-semibold text-gray-900">Export as Excel</div>
+              <div className="text-sm text-gray-600">Full multi-tab workbook with courses, MCAT, and hours</div>
+            </div>
+          </button>
+
+          {/* Clear */}
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="w-full flex items-center justify-between p-4 bg-red-50 border-2 border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+            className="w-full flex items-center gap-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg hover:bg-red-100 transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <Trash2 className="text-red-600" size={24} />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Clear All Data</div>
-                <div className="text-sm text-gray-600">Reset app and start over</div>
-              </div>
+            <Trash2 className="text-red-600 shrink-0" size={24} />
+            <div className="text-left">
+              <div className="font-semibold text-gray-900">Clear All Data</div>
+              <div className="text-sm text-gray-600">Reset app and start over</div>
             </div>
           </button>
         </div>
@@ -433,7 +586,7 @@ export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
                 <ul className="mt-2 list-disc space-y-2 pl-5">
                   <li>All data you enter (GPA, hours, scores) is stored locally on your own device&apos;s browser.</li>
                   <li>SERH Solutions LLC does not collect, store, or have access to your personal data or academic records.</li>
-                  <li>Clearing your browser cache or data may result in the loss of entered information. We recommend using the "Export to Excel" feature regularly to back up your data.</li>
+                  <li>Clearing your browser cache or data may result in the loss of entered information. We recommend exporting your data regularly.</li>
                 </ul>
               </section>
               <section>
