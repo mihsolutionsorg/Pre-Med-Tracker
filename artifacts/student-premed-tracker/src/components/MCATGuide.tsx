@@ -245,6 +245,9 @@ export function MCATGuide({
               placeholder="510"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
             />
+            <p className="text-xs text-gray-400 mt-1.5 leading-snug">
+              MD programs typically aim for 511+; DO programs for 504+.
+            </p>
           </div>
 
           <div>
