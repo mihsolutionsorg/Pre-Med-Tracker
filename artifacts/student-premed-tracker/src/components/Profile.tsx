@@ -1,21 +1,76 @@
 import { useState } from 'react';
-import { User, Trash2, Info, FileSpreadsheet } from 'lucide-react';
+import { Pencil, X, Check, Trash2, Info, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-interface ProfileProps {
-  userProfile: {
-    name: string;
-    school: string;
-    year: string;
-    semester: string;
-    track: string;
-  };
+interface UserProfile {
+  name: string;
+  school: string;
+  year: string;
+  semester: string;
+  track: string;
 }
 
-export function Profile({ userProfile }: ProfileProps) {
+interface ProfileProps {
+  userProfile: UserProfile;
+  onUpdateProfile: (updated: Partial<UserProfile>) => void;
+}
+
+const YEAR_OPTIONS = [
+  { value: 'undergrad-freshman',  label: 'Freshman' },
+  { value: 'undergrad-sophomore', label: 'Sophomore' },
+  { value: 'undergrad-junior',    label: 'Junior' },
+  { value: 'undergrad-senior',    label: 'Senior' },
+  { value: 'gap-year',            label: 'Gap Year' },
+];
+
+const SEMESTER_OPTIONS = [
+  { value: 'fall',   label: 'Fall' },
+  { value: 'spring', label: 'Spring' },
+  { value: 'summer', label: 'Summer' },
+];
+
+function getYearLabel(year: string) {
+  return YEAR_OPTIONS.find((o) => o.value === year)?.label ?? year;
+}
+
+export function Profile({ userProfile, onUpdateProfile }: ProfileProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Pick<UserProfile, 'name' | 'school' | 'year' | 'semester'>>({
+    name: userProfile.name,
+    school: userProfile.school,
+    year: userProfile.year,
+    semester: userProfile.semester,
+  });
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+
+  const isProfileIncomplete = !userProfile.name.trim() || !userProfile.school.trim();
+
+  const handleStartEdit = () => {
+    setDraft({
+      name: userProfile.name,
+      school: userProfile.school,
+      year: userProfile.year,
+      semester: userProfile.semester,
+    });
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(draft);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft({
+      name: userProfile.name,
+      school: userProfile.school,
+      year: userProfile.year,
+      semester: userProfile.semester,
+    });
+    setEditing(false);
+  };
 
   const handleExportExcel = () => {
     const gradePoints: Record<string, number> = {
@@ -26,17 +81,14 @@ export function Profile({ userProfile }: ProfileProps) {
       'F': 0.0,
     };
 
-    // Parse data from localStorage
     const coursesData = JSON.parse(localStorage.getItem('premed-courses') || '[]');
     const hoursData = JSON.parse(localStorage.getItem('premed-hours') || '{"clinical":0,"research":0,"volunteer":0,"shadowing":0}');
     const examPlanData = JSON.parse(localStorage.getItem('premed-exam-plan') || '{"targetDate":"","targetScore":0,"currentPhase":"","weeklyHours":0}');
     const practiceTestsData = JSON.parse(localStorage.getItem('premed-practice-tests') || '[]');
     const prioritiesData = JSON.parse(localStorage.getItem('premed-priorities') || '[]');
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Profile
     const profileData = [
       ['Pre-Med Journey - Data Export'],
       ['Export Date:', new Date().toLocaleDateString()],
@@ -46,49 +98,30 @@ export function Profile({ userProfile }: ProfileProps) {
       ['School:', userProfile.school],
       ['Year:', getYearLabel(userProfile.year)],
       ['Semester:', userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)],
-      ['Track:', getTrackLabel(userProfile.track)],
     ];
-    const wsProfile = XLSX.utils.aoa_to_sheet(profileData);
-    XLSX.utils.book_append_sheet(wb, wsProfile, 'Profile');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(profileData), 'Profile');
 
-    // Sheet 2: Courses & GPA
     if (coursesData.length > 0) {
       const courseHeaders = [['Course Name', 'Grade', 'Credits', 'Grade Points', 'Quality Points', 'BCPM']];
-      const courseRows = coursesData.map((course: any) => [
+      const courseRows = coursesData.map((course: { name: string; grade: string; credits: number; isBCPM: boolean }) => [
         course.name,
         course.grade,
         course.credits,
         gradePoints[course.grade] || 0,
         (gradePoints[course.grade] || 0) * course.credits,
-        course.isBCPM ? 'Yes' : 'No'
+        course.isBCPM ? 'Yes' : 'No',
       ]);
-
-      // Calculate GPA
-      const totalCredits = coursesData.reduce((sum: number, c: any) => sum + c.credits, 0);
-      const totalPoints = coursesData.reduce((sum: number, c: any) => sum + (gradePoints[c.grade] || 0) * c.credits, 0);
+      const totalCredits = coursesData.reduce((s: number, c: { credits: number }) => s + c.credits, 0);
+      const totalPoints = coursesData.reduce((s: number, c: { grade: string; credits: number }) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
       const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
-
-      // BCPM GPA
-      const bcpmCourses = coursesData.filter((c: any) => c.isBCPM);
-      const bcpmCredits = bcpmCourses.reduce((sum: number, c: any) => sum + c.credits, 0);
-      const bcpmPoints = bcpmCourses.reduce((sum: number, c: any) => sum + (gradePoints[c.grade] || 0) * c.credits, 0);
+      const bcpmCourses = coursesData.filter((c: { isBCPM: boolean }) => c.isBCPM);
+      const bcpmCredits = bcpmCourses.reduce((s: number, c: { credits: number }) => s + c.credits, 0);
+      const bcpmPoints = bcpmCourses.reduce((s: number, c: { grade: string; credits: number }) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
       const bcpmGPA = bcpmCredits > 0 ? bcpmPoints / bcpmCredits : 0;
-
-      const summaryRows = [
-        [],
-        ['GPA Summary'],
-        ['Total Credits:', totalCredits],
-        ['Cumulative GPA:', gpa.toFixed(2)],
-        ['BCPM Credits:', bcpmCredits],
-        ['BCPM GPA:', bcpmGPA.toFixed(2)],
-      ];
-
-      const wsCourses = XLSX.utils.aoa_to_sheet([...courseHeaders, ...courseRows, ...summaryRows]);
-      XLSX.utils.book_append_sheet(wb, wsCourses, 'Courses & GPA');
+      const summaryRows = [[], ['GPA Summary'], ['Total Credits:', totalCredits], ['Cumulative GPA:', gpa.toFixed(2)], ['BCPM Credits:', bcpmCredits], ['BCPM GPA:', bcpmGPA.toFixed(2)]];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([...courseHeaders, ...courseRows, ...summaryRows]), 'Courses & GPA');
     }
 
-    // Sheet 3: Experience Hours
-    const hoursHeaders = [['Experience Type', 'Hours', 'Target', 'Progress']];
     const hoursRows = [
       ['Clinical', hoursData.clinical, 200, `${Math.min(100, (hoursData.clinical / 200) * 100).toFixed(0)}%`],
       ['Research', hoursData.research, 100, `${Math.min(100, (hoursData.research / 100) * 100).toFixed(0)}%`],
@@ -97,11 +130,9 @@ export function Profile({ userProfile }: ProfileProps) {
       [],
       ['Total Hours:', hoursData.clinical + hoursData.research + hoursData.volunteer + hoursData.shadowing],
     ];
-    const wsHours = XLSX.utils.aoa_to_sheet([...hoursHeaders, ...hoursRows]);
-    XLSX.utils.book_append_sheet(wb, wsHours, 'Experience Hours');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Experience Type', 'Hours', 'Target', 'Progress'], ...hoursRows]), 'Experience Hours');
 
-    // Sheet 4: MCAT Plan & Practice Tests
-    const mcatData = [
+    const mcatData: (string | number)[][] = [
       ['MCAT Exam Plan'],
       ['Target Date:', examPlanData.targetDate || 'Not Set'],
       ['Target Score:', examPlanData.targetScore || 'Not Set'],
@@ -109,38 +140,18 @@ export function Profile({ userProfile }: ProfileProps) {
       ['Weekly Study Hours:', examPlanData.weeklyHours || 0],
       [],
     ];
-
     if (practiceTestsData.length > 0) {
-      mcatData.push(['Practice Tests']);
-      mcatData.push(['Date', 'Score', 'Source']);
-      practiceTestsData.forEach((test: any) => {
-        mcatData.push([test.date, test.score, test.source]);
-      });
-
-      // Calculate average
-      const avgScore = practiceTestsData.reduce((sum: number, t: any) => sum + t.score, 0) / practiceTestsData.length;
-      mcatData.push([]);
-      mcatData.push(['Average Score:', avgScore.toFixed(1)]);
-      mcatData.push(['Total Practice Tests:', practiceTestsData.length]);
+      mcatData.push(['Practice Tests'], ['Date', 'Score', 'Source']);
+      practiceTestsData.forEach((t: { date: string; score: number; source: string }) => mcatData.push([t.date, t.score, t.source]));
+      const avg = practiceTestsData.reduce((s: number, t: { score: number }) => s + t.score, 0) / practiceTestsData.length;
+      mcatData.push([], ['Average Score:', avg.toFixed(1)], ['Total Practice Tests:', practiceTestsData.length]);
     } else {
       mcatData.push(['No practice tests recorded yet']);
     }
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mcatData), 'MCAT');
 
-    const wsMCAT = XLSX.utils.aoa_to_sheet(mcatData);
-    XLSX.utils.book_append_sheet(wb, wsMCAT, 'MCAT');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Roadmap Progress'], ['Completed Priorities:', prioritiesData.length], [], ['Note: Detailed priority checklist available in the app']]), 'Roadmap Progress');
 
-    // Sheet 5: Roadmap Progress
-    const prioritiesCount = prioritiesData.length;
-    const progressData = [
-      ['Roadmap Progress'],
-      ['Completed Priorities:', prioritiesCount],
-      [],
-      ['Note: Detailed priority checklist available in the app'],
-    ];
-    const wsProgress = XLSX.utils.aoa_to_sheet(progressData);
-    XLSX.utils.book_append_sheet(wb, wsProgress, 'Roadmap Progress');
-
-    // Generate Excel file
     XLSX.writeFile(wb, `premed-data-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -149,28 +160,9 @@ export function Profile({ userProfile }: ProfileProps) {
     window.location.reload();
   };
 
-  const getYearLabel = (year: string) => {
-    const labels: Record<string, string> = {
-      'undergrad-freshman': 'Freshman',
-      'undergrad-sophomore': 'Sophomore',
-      'undergrad-junior': 'Junior',
-      'undergrad-senior': 'Senior',
-      'gap-year': 'Gap Year',
-    };
-    return labels[year] || year;
-  };
-
-  const getTrackLabel = (track: string) => {
-    const labels: Record<string, string> = {
-      'both': 'MD & DO',
-      'md': 'MD Only',
-      'do': 'DO Only',
-    };
-    return labels[track] || track;
-  };
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl">
         <div className="flex items-center gap-3 mb-2">
           <Avatar className="size-12 border border-white/30 bg-white/10">
@@ -186,33 +178,142 @@ export function Profile({ userProfile }: ProfileProps) {
             <AvatarFallback className="bg-white/10 text-white">PM</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-2xl font-bold">Profile</h2>
-            <p className="text-purple-100">Manage your account and data</p>
+            <h2 className="text-2xl font-bold">
+              {userProfile.name.trim() ? userProfile.name : 'Your Profile'}
+            </h2>
+            <p className="text-purple-100">
+              {userProfile.school.trim() ? userProfile.school : 'Manage your account and data'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Profile Info */}
+      {/* Incomplete profile banner */}
+      {isProfileIncomplete && !editing && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="text-amber-500 mt-0.5 shrink-0" size={20} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800">Your profile is incomplete</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Add your name and school to personalize your roadmap and export.
+            </p>
+          </div>
+          <button
+            onClick={handleStartEdit}
+            className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Complete
+          </button>
+        </div>
+      )}
+
+      {/* Your Information */}
       <div className="bg-white rounded-xl shadow-md p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Information</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Your Information</h3>
+          {!editing ? (
+            <button
+              onClick={handleStartEdit}
+              className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Pencil size={14} />
+              Edit
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancel}
+                className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <X size={14} />
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Check size={14} />
+                Save
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-600">Name</span>
-            <span className="font-medium text-gray-900">{userProfile.name}</span>
+          {/* Name */}
+          <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-3">
+            <span className="text-sm text-gray-500 shrink-0 w-20">Name</span>
+            {editing ? (
+              <input
+                type="text"
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                placeholder="Your first name"
+                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
+              />
+            ) : (
+              <span className={`font-medium text-right ${userProfile.name.trim() ? 'text-gray-900' : 'text-gray-400 italic'}`}>
+                {userProfile.name.trim() || 'Not set'}
+              </span>
+            )}
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-600">School</span>
-            <span className="font-medium text-gray-900">{userProfile.school}</span>
+
+          {/* School */}
+          <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-3">
+            <span className="text-sm text-gray-500 shrink-0 w-20">School</span>
+            {editing ? (
+              <input
+                type="text"
+                value={draft.school}
+                onChange={(e) => setDraft({ ...draft, school: e.target.value })}
+                placeholder="e.g., UCLA"
+                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
+              />
+            ) : (
+              <span className={`font-medium text-right ${userProfile.school.trim() ? 'text-gray-900' : 'text-gray-400 italic'}`}>
+                {userProfile.school.trim() || 'Not set'}
+              </span>
+            )}
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span className="text-sm text-gray-600">Year</span>
-            <span className="font-medium text-gray-900">
-              {getYearLabel(userProfile.year)} - {userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)}
-            </span>
+
+          {/* Year */}
+          <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-3">
+            <span className="text-sm text-gray-500 shrink-0 w-20">Year</span>
+            {editing ? (
+              <select
+                value={draft.year}
+                onChange={(e) => setDraft({ ...draft, year: e.target.value })}
+                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
+              >
+                {YEAR_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="font-medium text-gray-900 text-right">
+                {getYearLabel(userProfile.year)}
+              </span>
+            )}
           </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-sm text-gray-600">Track</span>
-            <span className="font-medium text-gray-900">{getTrackLabel(userProfile.track)}</span>
+
+          {/* Semester */}
+          <div className="flex items-center justify-between py-2 gap-3">
+            <span className="text-sm text-gray-500 shrink-0 w-20">Semester</span>
+            {editing ? (
+              <select
+                value={draft.semester}
+                onChange={(e) => setDraft({ ...draft, semester: e.target.value })}
+                className="flex-1 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none text-right"
+              >
+                {SEMESTER_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="font-medium text-gray-900 text-right">
+                {userProfile.semester.charAt(0).toUpperCase() + userProfile.semester.slice(1)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -249,6 +350,34 @@ export function Profile({ userProfile }: ProfileProps) {
         </div>
       </div>
 
+      {/* About */}
+      <div className="bg-white rounded-xl shadow-md p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Info className="text-gray-600" size={24} />
+          <h3 className="text-lg font-semibold text-gray-900">About</h3>
+        </div>
+        <div className="space-y-3 text-xs leading-relaxed text-gray-500">
+          <p>
+            Pre-Med Journey helps you track your progress toward medical school acceptance. All data is stored locally on your device. Nothing is sent to external servers.
+          </p>
+          <p>
+            Disclaimer: This tool is for educational and organizational purposes only. It does not guarantee admission to any medical school or specific exam results. Always verify benchmarks with official AAMC or AACOMAS resources.
+          </p>
+          <p>Based on &apos;Med School Bound – The Year-by-Year Roadmap Nobody Gave You&apos;</p>
+          <p>© 2026 SERH Solutions LLC. All Rights Reserved.</p>
+          <p className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowTermsModal(true)}
+              className="text-xs font-medium text-blue-600 hover:text-blue-700"
+            >
+              View Full Terms &amp; Conditions
+            </button>
+          </p>
+        </div>
+      </div>
+
+      {/* Clear confirm modal */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
@@ -274,35 +403,7 @@ export function Profile({ userProfile }: ProfileProps) {
         </div>
       )}
 
-      {/* About */}
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Info className="text-gray-600" size={24} />
-          <h3 className="text-lg font-semibold text-gray-900">About</h3>
-        </div>
-        <div className="space-y-3 text-xs leading-relaxed text-gray-500">
-          <p>
-            Pre-Med Journey helps you track your progress toward medical school acceptance. All data is stored locally on your device. Nothing is sent to external servers.
-          </p>
-          <p>
-            Disclaimer: This tool is for educational and organizational purposes only. It does not guarantee admission to any medical school or specific exam results. Always verify benchmarks with official AAMC or AACOMAS resources.
-          </p>
-          <p>
-            Based on &apos;Med School Bound – The Year-by-Year Roadmap Nobody Gave You&apos;
-          </p>
-          <p>© 2026 SERH Solutions LLC. All Rights Reserved.</p>
-          <p className="pt-2">
-            <button
-              type="button"
-              onClick={() => setShowTermsModal(true)}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700"
-            >
-              View Full Terms &amp; Conditions
-            </button>
-          </p>
-        </div>
-      </div>
-
+      {/* Terms modal */}
       {showTermsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
@@ -319,7 +420,6 @@ export function Profile({ userProfile }: ProfileProps) {
                 Close
               </button>
             </div>
-
             <div className="mt-6 space-y-5 text-sm leading-relaxed text-gray-700">
               <section>
                 <h4 className="font-semibold text-gray-900">1. Scope of Service &amp; No Guarantee</h4>
@@ -327,7 +427,6 @@ export function Profile({ userProfile }: ProfileProps) {
                   The Pre-Med Tracker and the Med School Bound Roadmap are educational tools designed to help students organize their application journey. SERH Solutions LLC does not guarantee admission to any medical school, specific test scores (MCAT), or academic outcomes. Admissions decisions are made solely by the respective institutions. Users are responsible for verifying all deadlines and requirements with official bodies like the AAMC (AMCAS) or AACOMAS.
                 </p>
               </section>
-
               <section>
                 <h4 className="font-semibold text-gray-900">2. Privacy &amp; Data Storage</h4>
                 <p className="mt-2">We value your privacy. The Pre-Med Tracker is designed as a "local-first" application. This means:</p>
@@ -337,7 +436,6 @@ export function Profile({ userProfile }: ProfileProps) {
                   <li>Clearing your browser cache or data may result in the loss of entered information. We recommend using the "Export to Excel" feature regularly to back up your data.</li>
                 </ul>
               </section>
-
               <section>
                 <h4 className="font-semibold text-gray-900">3. Digital Sales &amp; Intellectual Property</h4>
                 <p className="mt-2">By purchasing access to these tools, you are granted a single-user license.</p>
@@ -348,7 +446,6 @@ export function Profile({ userProfile }: ProfileProps) {
                 </ul>
               </section>
             </div>
-
             <div className="mt-6 border-t border-gray-200 pt-4 text-xs text-gray-500">
               © 2026 SERH Solutions LLC. All Rights Reserved.
             </div>

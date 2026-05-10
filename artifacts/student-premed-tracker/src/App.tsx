@@ -247,7 +247,14 @@ export default function App() {
         )}
 
         {currentView === 'profile' && (
-          <Profile userProfile={userProfile} />
+          <Profile
+            userProfile={userProfile}
+            onUpdateProfile={(updated) => {
+              const merged = { ...userProfile, ...updated };
+              setUserProfile(merged);
+              localStorage.setItem('premed-profile', JSON.stringify(merged));
+            }}
+          />
         )}
       </div>
 
